@@ -603,7 +603,7 @@ async function loadData(){
   if(state.user){try{const {data:rt}=await sb.from('ratings').select('recipe_id,stars').eq('user_id',state.user.id);(rt||[]).forEach(x=>{state.myRatings[x.recipe_id]=x.stars;});}catch(e){}}
   if(state.user){await loadDogs();await loadMine();await loadPending();await loadPlan();await loadShop();}
 }
-function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
+function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',photo:d.photo_url||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
 async function loadDogs(){
   if(!state.user||!sb)return;
   const [{data:ds},{data:js}]=await Promise.all([
@@ -771,7 +771,7 @@ function recipeCardHTML(r,full){
 }
 function dogCardHTML(d,i){
   const meta=[];if(d.preferences)meta.push('Preferencje: '+d.preferences);if(d.conditions&&d.conditions!=='Brak')meta.push('Ograniczenia: '+d.conditions);
-  return `<div class="dogcard" style="margin-bottom:12px">${typeof i==='number'?`<button class="dogedit" onclick="openDogForm(${i})" aria-label="Edytuj">${ico('edit')}</button>`:''}<div class="ava">${d.name[0]}</div>
+  return `<div class="dogcard" style="margin-bottom:12px">${typeof i==='number'?`<button class="dogedit" onclick="openDogForm(${i})" aria-label="Edytuj">${ico('edit')}</button>`:''}<div class="ava"${d.photo?` style="background-image:url('${d.photo}');background-size:cover;background-position:center"`:''}>${d.photo?'':d.name[0]}</div>
     <div style="flex:1"><h4>${d.name}</h4>
       <div class="tags"><em>${d.breed}</em><em>${d.age}</em><em>${d.weight}</em>${d.activity?`<em>${d.activity}</em>`:''}${d.goal?`<em>${d.goal}</em>`:''}${(d.allergens||[]).map(a=>`<em>\u26A0 ${a}</em>`).join('')}${(d.forbidden||[]).map(a=>`<em>\u2298 ${a}</em>`).join('')}</div>
       ${meta.length?`<div class="dogmeta">${meta.join(' \u00B7 ')}</div>`:''}
@@ -1072,6 +1072,7 @@ function dogFormHTML(d,editing){
   const tx=v=>v?String(v).replace(/</g,'&lt;'):'';
   return `<div style="background:rgba(244,238,225,.05);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><b class="serif" style="font-size:17px;font-weight:500">${editing?'Edytuj profil psa':'Nowy profil psa'}</b>${editing?`<button class="linkdel" onclick="deleteDog(${state.editingDog})">${ico('x')} Usuń psa</button>`:''}</div>
+    <div class="field"><label>Zdjęcie psa</label><input type="file" id="d_photo" accept="image/*" style="display:none" onchange="onDogPhotoPick(event)"><button class="outbtn" type="button" onclick="document.getElementById('d_photo').click()">${ico('image')} ${(pendingDogPhoto||d.photo)?'Zmień zdjęcie':'Wybierz zdjęcie'}</button><div id="d_photo_prev">${pendingDogPhoto?'<p class="muted" style="font-size:12px;margin-top:8px">Zdjęcie wybrane ✓ — zostanie zoptymalizowane.</p>':(d.photo?`<img src="${d.photo}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:50%;margin-top:8px">`:'')}</div></div>
     <div class="field"><label>Imię psa</label><input id="d_name" value="${at(d.name)}" placeholder="np. Henry"></div>
     <div class="row2"><div class="field"><label>Rasa lub typ</label><input id="d_breed" value="${at(d.breed)}" placeholder="np. Chart"></div><div class="field"><label>Wiek</label><input id="d_age" value="${at(d.age)}" placeholder="np. 3 lata"></div></div>
     <div class="row2"><div class="field"><label>Waga</label><input id="d_weight" value="${at(d.weight)}" placeholder="np. 20 kg"></div><div class="field"><label>Poziom aktywności</label><select id="d_act">${opt(acts,d.activity)}</select></div></div>
@@ -1086,6 +1087,7 @@ function dogFormHTML(d,editing){
 }
 function openDogForm(i){
   const f=$('dogForm');const editing=(typeof i==='number');
+  pendingDogPhoto=null;
   if(!editing && f.dataset.mode==='add'){f.innerHTML='';f.dataset.mode='';state.editingDog=null;return;}
   state.editingDog=editing?i:null;
   f.dataset.mode=editing?'edit':'add';
@@ -1099,8 +1101,19 @@ async function saveDog(){
   const row={owner_id:state.user.id,name:g('d_name')||'Nowy pies',breed:g('d_breed')||null,age_text:g('d_age')||null,weight_kg:parseFloat((g('d_weight')||'').replace(',','.'))||null,activity:$('d_act').value,goal:$('d_goal').value,allergens:split(g('d_all')),forbidden:split(g('d_forb')),preferences:g('d_pref')||null,conditions:g('d_cond')||null,note:g('d_note')||null};
   try{
     const cur=(state.editingDog!=null)?state.dogs[state.editingDog]:null;
-    if(cur&&cur.id){await sb.from('dogs').update(row).eq('id',cur.id);toast('Zapisano zmiany');}
-    else{await sb.from('dogs').insert(row);toast('Dodano profil: '+row.name);}
+    let dogId=cur&&cur.id;
+    if(dogId){const {error}=await sb.from('dogs').update(row).eq('id',dogId);if(error){toast('Błąd: '+error.message);return;}}
+    else{const {data,error}=await sb.from('dogs').insert(row).select().single();if(error){toast('Błąd: '+error.message);return;}dogId=data.id;}
+    if(pendingDogPhoto&&dogId){try{
+      toast('Przetwarzam zdjęcie…');
+      const blob=await compressImage(pendingDogPhoto,512,0.8);
+      const path=dogId+'/'+Date.now()+'.webp';
+      await sb.storage.from('dog-photos').upload(path,blob,{contentType:'image/webp',upsert:true});
+      const url=sb.storage.from('dog-photos').getPublicUrl(path).data.publicUrl;
+      await sb.from('dogs').update({photo_url:url}).eq('id',dogId);
+    }catch(e){}}
+    pendingDogPhoto=null;
+    toast(cur&&cur.id?'Zapisano zmiany':'Dodano profil: '+row.name);
     state.editingDog=null;await loadDogs();render();
   }catch(e){toast('Błąd zapisu: '+(e.message||e));}
 }
@@ -1137,7 +1150,7 @@ function render(){
   lastTab=state.tab;
 }
 function go(t){if(t==='add')pendingPhoto=null;state.tab=t;render();}
-let pendingPhoto=null;
+let pendingPhoto=null,pendingDogPhoto=null;
 function compressImage(file,maxDim,quality){
   return new Promise((resolve,reject)=>{
     const img=new Image();
@@ -1156,6 +1169,12 @@ function onPhotoPick(e){
   pendingPhoto=f;
   const prev=$('r_photo_prev');
   if(prev){const url=URL.createObjectURL(f);prev.innerHTML=`<img src="${url}" alt="" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-top:8px"><p class="muted" style="font-size:12px;margin-top:6px">Zostanie zmniejszone i zoptymalizowane przed wysłaniem.</p>`;}
+}
+function onDogPhotoPick(e){
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  pendingDogPhoto=f;
+  const prev=$('d_photo_prev');
+  if(prev){const url=URL.createObjectURL(f);prev.innerHTML=`<img src="${url}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:50%;margin-top:8px"><p class="muted" style="font-size:12px;margin-top:6px">Zostanie zoptymalizowane przed wysłaniem.</p>`;}
 }
 function goCat(c){state.tab='recipes';state.cat=c;state.q='';render();}
 function goSearch(){state.tab='recipes';render();const s=$('search');if(s)s.focus();}
