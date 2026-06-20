@@ -570,14 +570,14 @@ function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');cle
 const SB_URL='https://aprzeqqjtwtbaoqbdolv.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwcnplcXFqdHd0YmFvcWJkb2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzY1MjYsImV4cCI6MjA5NzQ1MjUyNn0.AxNIw_2qJf32ne8XslXFFMjV4dU9jLlFkOOxmUmD0QM';
 const _pf=(u,o={})=>{const h={};const hs=o.headers;if(hs){if(typeof hs.forEach==='function'){hs.forEach((v,k)=>{h[k]=v;});}else{Object.assign(h,hs);}}return fetch(u,Object.assign({},o,{headers:h}));};
-const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY,{global:{fetch:_pf}}):null;
+const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
 const DIFFL={easy:'Łatwy',medium:'Średni',hard:'Trudny'};
 const WASHES=['green','parch','forest','gold'];
 function mapDbRecipe(r,ings,steps,tagKeys,i){
   const badge=tagKeys.includes('q_diet')?'diet':(tagKeys.includes('q_verif')?'verif':'comm');
   return {id:r.id,name:r.title,cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
     time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
-    portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,desc:r.description||'',
+    portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,ratingCount:r.rating_count||0,created:r.created_at||'',desc:r.description||'',
     flags:tagKeys,ing:ings.map(x=>[x.name,x.amount||'']),steps:steps.map(x=>x.body),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
 }
 async function loadData(){
@@ -767,7 +767,7 @@ function recipeCardHTML(r,full){
   return `<div class="rcard ${full?'full':''}" onclick="openRecipe('${r.id}')">
     <div class="thumb ${r.wash}"${r.thumb?` style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${r.thumb}');background-size:cover;background-position:center"`:''}><button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
     <h4>${r.name}</h4>
-    <div class="sub"><span>${r.time}</span><span class="dot">·</span><span>${r.kcal}</span><span class="dot">·</span><span>${star} ${r.rating}</span></div></div>`;
+    <div class="sub"><span>${r.time}</span><span class="dot">·</span><span>${r.kcal}</span>${r.ratingCount?`<span class="dot">·</span><span>${star} ${r.rating}</span>`:''}</div></div>`;
 }
 function dogCardHTML(d,i){
   const meta=[];if(d.preferences)meta.push('Preferencje: '+d.preferences);if(d.conditions&&d.conditions!=='Brak')meta.push('Ograniczenia: '+d.conditions);
@@ -1012,18 +1012,21 @@ async function generateShop(){
 }
 
 function renderCommunity(){
-  const posts=[['Anna & Reksio','2 godz. temu','forest','Reksio oszalał na punkcie smaczków wątróbkowych. Zrobiłam od razu podwójną porcję.','24','6'],
-    ['Marek & Luna','wczoraj','green','Pierwszy raz BARF według przepisu od dietetyka — Luna ma więcej energii niż kiedykolwiek.','41','12'],
-    ['Kasia & Borys','2 dni temu','parch','Owsianka dla seniora to strzał w dziesiątkę dla mojego 11-latka. Dziękuję!','58','9']];
+  const recent=RECIPES.slice().sort((a,b)=>(b.created||'').localeCompare(a.created||'')).slice(0,8);
+  const allC=[];Object.keys(state.comments||{}).forEach(rid=>{(state.comments[rid]||[]).forEach(c=>allC.push(c));});
+  const recentC=allC.slice(-5).reverse();
   return `
   <div class="brandbar" style="padding:18px 0 4px"><img class="crest" src="${CREST}" style="height:60px" alt=""></div>
   <div class="pad" style="text-align:center;margin-bottom:18px"><span class="eyebrow">Stół wspólny</span><b class="serif" style="display:block;font-size:24px;font-weight:500;margin-top:6px">Społeczność</b></div>
   <div class="pad" style="padding-bottom:30px">
-    ${posts.map(([who,when,wash,txt,likes,com])=>`<div class="comm-post"><div class="ph"><div class="av">${who[0]}</div><div><b>${who}</b><small>${when}</small></div></div>
-      <div class="pic thumb ${wash}"></div>
-      <p>${txt}</p><div class="react"><span>${ico('heart')} ${likes}</span><span>${ico('chat')} ${com}</span><span>Udostępnij</span></div></div>`).join('')}
+    <div class="section-h"><h2 style="font-size:18px">Najnowsze przepisy</h2></div>
+    ${recent.length?recent.map(r=>{const cc=(state.comments[r.id]||[]).length;return `<div class="comm-post" onclick="openRecipe('${r.id}')" style="cursor:pointer"><div class="ph"><div class="av">${(r.name||'?')[0]}</div><div><b>${r.name}</b><small>${r.diff} · ${r.time}</small></div></div>
+      <div class="pic thumb ${r.wash}"${r.thumb?` style="background-image:url('${r.thumb}');background-size:cover;background-position:center"`:''}></div>
+      ${r.desc?`<p>${r.desc}</p>`:''}<div class="react"><span>${ico('heart')} ${state.favs.has(r.id)?'W ulubionych':'Polub'}</span><span>${ico('chat')} ${cc}</span><span>Zobacz przepis</span></div></div>`;}).join(''):'<p class="muted">Brak przepisów. Dodaj pierwszy w zakładce „Dodaj".</p>'}
+    ${recentC.length?`<div class="section-h" style="margin-top:18px"><h2 style="font-size:18px">Ostatnie komentarze</h2></div>
+      ${recentC.map(c=>`<div class="comment"><div class="av">${(c.who||'?')[0]}</div><div><b>${c.who}</b><small>${c.when}</small><p>${c.text}</p></div></div>`).join('')}`:''}
     <div class="sprig" style="margin:18px auto"><span>MODEROWANE Z TROSKĄ</span></div>
-    <p class="muted" style="text-align:center">Każdy przepis i zdjęcie przechodzi weryfikację, zanim trafi do społeczności.</p>
+    <p class="muted" style="text-align:center">Każdy przepis przechodzi weryfikację, zanim trafi do społeczności.</p>
   </div>`;
 }
 
@@ -1056,7 +1059,8 @@ function renderProfile(){
 
     <div class="section-h"><h2 style="font-size:18px">Ustawienia</h2></div>
     <div style="padding-bottom:30px">
-      ${[['flag','Tryb alergii'],['bell','Powiadomienia'],['book','Baza wiedzy'],['help','Pomoc i wsparcie'],['info','O Society']].map(([i,t])=>`<div class="menu-item" onclick="toast('${t} — wkrótce')"><span class="ic">${ico(i)}</span><span class="lbl">${t}</span><span class="ar">${ico('chev')}</span></div>`).join('')}
+      ${state.user?`<div class="menu-item" onclick="allergyMode()"><span class="ic">${ico('flag')}</span><span class="lbl">Tryb alergii</span><span class="ar">${ico('chev')}</span></div>`:''}
+      <div class="menu-item" onclick="toast('The Grey Henry Society — premium przepisy i suplementy dla psów, moderowane z troską.')"><span class="ic">${ico('info')}</span><span class="lbl">O Society</span><span class="ar">${ico('chev')}</span></div>
       ${state.user?`<div class="menu-item" onclick="go('account')"><span class="ic">${ico('flag')}</span><span class="lbl">Ustawienia konta</span><span class="ar">${ico('chev')}</span></div>`:''}
       ${state.user?`<div class="menu-item" onclick="doLogout()"><span class="ic">${ico('x')}</span><span class="lbl">Wyloguj</span><span class="ar">${ico('chev')}</span></div>`:''}
     </div>
@@ -1135,6 +1139,12 @@ function goMatched(){state.tab='recipes';setProfileFilters();state.showFilters=f
 function goDietitian(){state.tab='recipes';state.cat='all';state.q='';state.dogMatch=false;state.flags=new Set(['diet']);state.showFilters=false;render();}
 function goComm(){state.tab='recipes';state.cat='all';state.q='';state.dogMatch=false;state.flags=new Set(['comm']);state.showFilters=false;render();}
 function clearMatch(){state.dogMatch=false;state.flags.clear();render();}
+function allergyMode(){
+  const d=state.dogs&&state.dogs[0];
+  if(!d){toast('Dodaj profil psa, aby włączyć tryb alergii');state.tab='profile';render();return;}
+  state.flags=new Set();state.dogMatch=true;state.cat='all';state.q='';state.tab='recipes';render();
+  toast('Tryb alergii: ukrywam produkty uczulające dla '+d.name);
+}
 
 const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile,account:renderAccount};
 let lastTab=null;
@@ -1225,7 +1235,7 @@ function openRecipe(id){
         <div class="metric"><b>${r.time.split(' ')[0]}</b><span>${/min/.test(r.time)?'minut':'czas'}</span></div>
         <div class="metric"><b>${r.diff}</b><span>Trudność</span></div>
         <div class="metric"><b>${r.kcal.split(' ')[0]}</b><span>kcal</span></div>
-        <div class="metric"><b>${star}${r.rating}</b><span>Ocena</span></div>
+        <div class="metric"><b>${r.ratingCount?star+r.rating:'—'}</b><span>Ocena</span></div>
       </div>
       <p class="lead">${r.desc}</p>
       <h3>Składniki <span style="font-size:12px;color:#8a9189;font-family:var(--sans)">· ${r.portion}</span></h3>

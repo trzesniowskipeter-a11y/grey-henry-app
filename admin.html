@@ -148,7 +148,7 @@ const SB_URL="https://aprzeqqjtwtbaoqbdolv.supabase.co";
 const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwcnplcXFqdHd0YmFvcWJkb2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzY1MjYsImV4cCI6MjA5NzQ1MjUyNn0.AxNIw_2qJf32ne8XslXFFMjV4dU9jLlFkOOxmUmD0QM";
 // plainFetch: konwersja Headers->obiekt (fix DataCloneError w sandboxie)
 function _pf(input,init){init=init||{};if(init.headers&&typeof init.headers.forEach==='function'){const h={};init.headers.forEach((v,k)=>h[k]=v);init.headers=h;}return fetch(input,init);}
-const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true},global:{fetch:_pf}});
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const STAFF=['admin','moderator','dietitian'];
 const $=id=>document.getElementById(id);
 let me=null, db={users:[],recipes:[],comments:[],tags:[],counts:{}}, uMap={}, rMap={}, view='dash';
