@@ -462,7 +462,7 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .section-h h2::before{background:#BFB178;box-shadow:0 0 9px rgba(143,127,72,.5)}
 /* delikatna złota linia pod herbem w nagłówkach ekranów */
 .brandbar{flex-direction:column;align-items:center;gap:10px}
-.brandbar::after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(143,127,72,.6),transparent)}
+.brandbar::after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(143,127,72,.6),transparent)}.rate{display:flex;gap:8px;margin:2px 0 8px}.rstar{background:none;border:none;padding:2px;font-size:24px;line-height:1;color:rgba(42,52,49,.22);cursor:pointer;transition:color .15s,transform .1s}.rstar.on{color:var(--gold)}.rstar:active{transform:scale(.9)}
 </style>
 </head>
 <body>
@@ -593,6 +593,13 @@ async function loadData(){
   (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
   RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
   state.favs=new Set((favs||[]).map(f=>f.recipe_id));
+  try{
+    const {data:cmts}=await sb.from('comments').select('recipe_id, body, created_at, profiles(display_name)').order('created_at');
+    state.comments={};
+    (cmts||[]).forEach(c=>{const who=(c.profiles&&c.profiles.display_name)||'Użytkownik';(state.comments[c.recipe_id]=state.comments[c.recipe_id]||[]).push({who,text:c.body,when:new Date(c.created_at).toLocaleDateString('pl-PL')});});
+  }catch(e){state.comments={};}
+  state.myRatings={};
+  if(state.user){try{const {data:rt}=await sb.from('ratings').select('recipe_id,stars').eq('user_id',state.user.id);(rt||[]).forEach(x=>{state.myRatings[x.recipe_id]=x.stars;});}catch(e){}}
   if(state.user){await loadDogs();await loadMine();await loadPending();}
 }
 function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
@@ -1068,6 +1075,8 @@ function openRecipe(id){
       ${r.warn?`<div class="warn"><span class="i">${ico('warn')}</span><p>${r.warn}</p></div>`:''}
       ${risky.length?`<div class="warn danger"><span class="i">${ico('warn')}</span><p>Automatyczne ostrzeżenie: wykryto składnik wymagający ostrożności (${risky.join(', ')}). Sprawdź, czy jest bezpieczny dla Twojego psa.</p></div>`:''}
       <button class="btn btn-gold" style="width:100%;margin-top:22px" onclick="addToPlan('${id}')">Dodaj do planera</button>
+      <h3>Twoja ocena</h3>
+      <div class="rate">${[1,2,3,4,5].map(n=>`<button type="button" class="rstar ${(state.myRatings&&state.myRatings[id]>=n)?'on':''}" onclick="rateRecipe('${id}',${n})" aria-label="${n} gwiazdek">${star}</button>`).join('')}</div>
       <h3>Komentarze</h3>
       ${cms.length?cms.map(c=>`<div class="comment"><div class="av">${c.who[0]}</div><div><b>${c.who}</b><small>${c.when}</small><p>${c.text}</p></div></div>`).join(''):'<p class="muted" style="color:#8a9189">Brak komentarzy. Bądź pierwszy.</p>'}
       <div class="cbox"><input id="cInput" placeholder="Napisz komentarz…" onkeydown="if(event.key==='Enter')addComment('${id}')"><button onclick="addComment('${id}')" aria-label="Wyślij">${ico('send')}</button></div>
@@ -1085,10 +1094,21 @@ async function toggleFav(id){
   toast(had?'Usunięto z ulubionych':'Dodano do ulubionych');
   try{if(had){await sb.from('favorites').delete().eq('recipe_id',id);}else{await sb.from('favorites').insert({user_id:state.user.id,recipe_id:id});}}catch(e){}
 }
-function addComment(id){
+async function addComment(id){
   const inp=$('cInput');if(!inp||!inp.value.trim())return;
-  (state.comments[id]=state.comments[id]||[]).push({who:'Ty',text:inp.value.trim(),when:'teraz'});
+  if(!state.user){toast('Zaloguj się, aby komentować');return;}
+  const text=inp.value.trim();
+  try{const {error}=await sb.from('comments').insert({recipe_id:id,author_id:state.user.id,body:text});if(error){toast('Błąd: '+error.message);return;}}catch(e){toast('Błąd: '+(e.message||e));return;}
+  const who=(state.profile&&state.profile.display_name)||'Ty';
+  (state.comments[id]=state.comments[id]||[]).push({who,text,when:'teraz'});
   openRecipe(id);toast('Dodano komentarz');
+}
+async function rateRecipe(id,n){
+  if(!state.user){toast('Zaloguj się, aby ocenić');return;}
+  try{const {error}=await sb.from('ratings').upsert({recipe_id:id,user_id:state.user.id,stars:n},{onConflict:'recipe_id,user_id'});if(error){toast('Błąd: '+error.message);return;}}catch(e){toast('Błąd: '+(e.message||e));return;}
+  state.myRatings=state.myRatings||{};state.myRatings[id]=n;
+  try{const {data}=await sb.from('recipes').select('rating_avg').eq('id',id).single();const r=findRecipe(id);if(r&&data&&data.rating_avg!=null)r.rating=Math.round(data.rating_avg*10)/10;}catch(e){}
+  openRecipe(id);toast('Dziękujemy za ocenę!');
 }
 
 setTimeout(()=>{$('splash').classList.add('hide');start();},2100);
