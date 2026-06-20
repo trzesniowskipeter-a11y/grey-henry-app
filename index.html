@@ -558,7 +558,7 @@ let RECIPES=[
 const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane'],comm:['b-comm','Przepis użytkownika']};
 
 const PAGE=6;
-let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
+let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
   comments:{1:[{who:'Ola K.',text:'Mój labrador uwielbia tę miskę. Robię co tydzień.',when:'3 dni temu'}],2:[{who:'Piotr',text:'Pomogło po problemach żołądkowych. Dziękuję!',when:'wczoraj'}],4:[{who:'Magda',text:'Świetnie zbilansowane, widać efekty u psa.',when:'5 dni temu'}]},
   dogs:[{name:'Mila',breed:'Border collie',age:'4 lata',weight:'17 kg',activity:'Wysoka aktywność',goal:'Pies aktywny',allergens:['Kurczak'],forbidden:['Zboża'],preferences:'Mięso, posiłki gotowane',conditions:'Brak',note:'Energiczna i czujna, uwielbia aportować. Najszczęśliwsza, gdy w misce jest coś gotowanego.',notes:[{text:'Po przejściu na gotowane posiłki ma wyraźnie więcej energii.',when:'tydzień temu'},{text:'Dobrze toleruje indyka — kurczak wywołuje swędzenie.',when:'3 dni temu'}]}]};
 
@@ -600,7 +600,7 @@ async function loadData(){
   }catch(e){state.comments={};}
   state.myRatings={};
   if(state.user){try{const {data:rt}=await sb.from('ratings').select('recipe_id,stars').eq('user_id',state.user.id);(rt||[]).forEach(x=>{state.myRatings[x.recipe_id]=x.stars;});}catch(e){}}
-  if(state.user){await loadDogs();await loadMine();await loadPending();}
+  if(state.user){await loadDogs();await loadMine();await loadPending();await loadPlan();await loadShop();}
 }
 function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
 async function loadDogs(){
@@ -858,11 +858,11 @@ async function saveRecipe(){
 
 function renderPlanner(){
   const week=state.plan;
-  const shop=[['Białko','Indyk, kurczak, wołowina, jagnięcina'],['Węglowodany','Ryż biały, ryż brązowy, płatki owsiane'],['Warzywa','Marchew, dynia, brokuł'],['Dodatki','Olej lniany, twaróg, olej z łososia']];
   const rows=week.map(([d,id])=>{
     if(id){const r=findRecipe(id);if(r)return `<div class="day"><div class="daytag">${d}</div><div class="dayslot" onclick="openRecipe('${id}')"><div><h5>${r.name}</h5><div class="m">${r.time} · ${r.kcal} · ${r.portion}</div></div><button class="dayrm" onclick="event.stopPropagation();clearPlanDay('${d}')" aria-label="Usuń">${ico('x')}</button></div></div>`;}
     return `<div class="day"><div class="daytag">${d}</div><div class="dayslot empty" onclick="goSearch()">${ico('plus')}Dodaj posiłek</div></div>`;
   }).join('');
+  const shop=state.shop||[];
   return `
   <div class="brandbar" style="padding:18px 0 4px"><img class="crest" src="${CREST}" style="height:60px" alt=""></div>
   <div class="pad" style="text-align:center;margin-bottom:8px"><span class="eyebrow">Tydzień psa</span><b class="serif" style="display:block;font-size:24px;font-weight:500;margin-top:6px">Planer posiłków</b></div>
@@ -870,23 +870,72 @@ function renderPlanner(){
   ${rows}
   <div style="padding:24px 22px 8px"><div class="sprig"><span>LISTA ZAKUPÓW</span></div></div>
   <div class="pad" style="padding-bottom:30px">
-    ${shop.map(s=>`<div class="shop" onclick="this.classList.toggle('done')"><span class="ck">${ico('check')}</span><div><h5>${s[0]}</h5><p>${s[1]}</p></div></div>`).join('')}
-    ${state.customShop.map(s=>`<div class="shop" onclick="this.classList.toggle('done')"><span class="ck">${ico('check')}</span><div><h5>${s}</h5><p>Dodane ręcznie</p></div></div>`).join('')}
+    <button class="outbtn" style="margin-bottom:14px" onclick="generateShop()">${ico('plus')} Uzupełnij ze składników z planu</button>
+    ${shop.length?shop.map(it=>`<div class="shop ${it.checked?'done':''}" onclick="toggleShop('${it.id}')"><span class="ck">${ico('check')}</span><div style="flex:1"><h5>${it.label}</h5><p>${it.is_custom?'Dodane ręcznie':'Z planu'}</p></div><button class="dayrm" onclick="event.stopPropagation();removeShop('${it.id}')" aria-label="Usuń">${ico('x')}</button></div>`).join(''):'<p class="muted" style="color:#8a9189;margin-bottom:6px">Lista jest pusta. Uzupełnij ją ze składników z planu lub dodaj produkty ręcznie.</p>'}
     <div class="shopadd"><input id="shopInput" placeholder="Dodaj własny produkt…" onkeydown="if(event.key==='Enter')addShop()"><button onclick="addShop()" aria-label="Dodaj">${ico('plus')}</button></div>
     <button class="outbtn" style="margin-top:16px" onclick="toast('Lista przygotowana do eksportu')">${ico('send')} Eksportuj listę</button>
-    <p class="disclaim" style="color:#8a9189">Lista powstaje automatycznie ze składników zaplanowanych posiłków. Możesz dopisać własne produkty.</p>
+    <p class="disclaim" style="color:#8a9189">Lista powstaje ze składników zaplanowanych posiłków. Możesz dopisać własne produkty.</p>
   </div>`;
 }
-function addShop(){const i=$('shopInput');if(!i||!i.value.trim())return;state.customShop.push(i.value.trim());render();toast('Dodano produkt');}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function weekDates(){const now=new Date();const off=(now.getDay()+6)%7;const mon=new Date(now);mon.setDate(now.getDate()-off);const out=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);out.push(fmtDate(d));}return out;}
 const DAYNAMES={Pon:'poniedziałek',Wt:'wtorek','Śr':'środę',Czw:'czwartek',Pt:'piątek',Sob:'sobotę',Niedz:'niedzielę'};
-function addToPlan(id){
-  const slot=state.plan.find(p=>p[1]===null);
-  if(!slot){toast('Plan na ten tydzień jest pełny');return;}
-  slot[1]=id;
-  if(state.tab==='planner')render();
-  toast('Dodano do planera na '+(DAYNAMES[slot[0]]||slot[0]));
+async function loadPlan(){
+  state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];
+  if(!state.user||!sb)return;
+  const dates=weekDates();
+  const {data}=await sb.from('meal_plan_entries').select('plan_date,recipe_id').eq('owner_id',state.user.id).gte('plan_date',dates[0]).lte('plan_date',dates[6]);
+  (data||[]).forEach(e=>{const idx=dates.indexOf(e.plan_date);if(idx>=0)state.plan[idx][1]=e.recipe_id;});
 }
-function clearPlanDay(d){const p=state.plan.find(x=>x[0]===d);if(p)p[1]=null;render();toast('Usunięto z planera');}
+async function loadShop(){
+  state.shop=[];
+  if(!state.user||!sb)return;
+  const {data}=await sb.from('shopping_items').select('id,label,is_custom,checked').eq('owner_id',state.user.id).order('created_at');
+  state.shop=data||[];
+}
+async function addToPlan(id){
+  if(!state.user){toast('Zaloguj się, aby planować');return;}
+  const i=state.plan.findIndex(p=>p[1]===null);
+  if(i<0){toast('Plan na ten tydzień jest pełny');return;}
+  state.plan[i][1]=id;
+  if(state.tab==='planner')render();
+  toast('Dodano do planera na '+(DAYNAMES[state.plan[i][0]]||state.plan[i][0]));
+  const dates=weekDates();
+  try{await sb.from('meal_plan_entries').delete().eq('owner_id',state.user.id).eq('plan_date',dates[i]).eq('position',0);
+  await sb.from('meal_plan_entries').insert({owner_id:state.user.id,plan_date:dates[i],position:0,recipe_id:id});}catch(e){}
+}
+async function clearPlanDay(d){
+  const i=state.plan.findIndex(x=>x[0]===d);if(i<0)return;
+  state.plan[i][1]=null;render();toast('Usunięto z planera');
+  if(state.user){const dates=weekDates();try{await sb.from('meal_plan_entries').delete().eq('owner_id',state.user.id).eq('plan_date',dates[i]).eq('position',0);}catch(e){}}
+}
+async function addShop(){
+  const i=$('shopInput');if(!i||!i.value.trim())return;
+  if(!state.user){toast('Zaloguj się, aby zapisać listę');return;}
+  const label=i.value.trim();
+  try{const {data,error}=await sb.from('shopping_items').insert({owner_id:state.user.id,label,is_custom:true,checked:false}).select().single();if(error){toast('Błąd: '+error.message);return;}if(data)state.shop.push(data);}catch(e){toast('Błąd: '+(e.message||e));return;}
+  render();toast('Dodano produkt');
+}
+async function toggleShop(id){
+  const it=(state.shop||[]).find(x=>x.id===id);if(!it)return;
+  it.checked=!it.checked;render();
+  try{await sb.from('shopping_items').update({checked:it.checked}).eq('id',id);}catch(e){}
+}
+async function removeShop(id){
+  state.shop=(state.shop||[]).filter(x=>x.id!==id);render();
+  try{await sb.from('shopping_items').delete().eq('id',id);}catch(e){}
+}
+async function generateShop(){
+  if(!state.user){toast('Zaloguj się, aby zapisać listę');return;}
+  const names=new Set();
+  state.plan.forEach(([d,id])=>{if(id){const r=findRecipe(id);if(r&&r.ing)r.ing.forEach(x=>names.add(x[0]));}});
+  if(!names.size){toast('Najpierw zaplanuj posiłki');return;}
+  const existing=new Set((state.shop||[]).map(s=>s.label.toLowerCase()));
+  const toAdd=[...names].filter(n=>!existing.has(n.toLowerCase()));
+  if(!toAdd.length){toast('Lista jest już aktualna');return;}
+  try{const {data,error}=await sb.from('shopping_items').insert(toAdd.map(label=>({owner_id:state.user.id,label,is_custom:false,checked:false}))).select();if(error){toast('Błąd: '+error.message);return;}if(data)state.shop.push(...data);}catch(e){toast('Błąd: '+(e.message||e));return;}
+  render();toast('Dodano składniki z planu');
+}
 
 function renderCommunity(){
   const posts=[['Anna & Reksio','2 godz. temu','forest','Reksio oszalał na punkcie smaczków wątróbkowych. Zrobiłam od razu podwójną porcję.','24','6'],
