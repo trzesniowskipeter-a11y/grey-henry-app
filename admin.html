@@ -94,6 +94,12 @@ td .row{display:flex;gap:6px;flex-wrap:wrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 .grpttl{padding:14px 18px 4px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);font-weight:600}
 @media(max-width:820px){#app{grid-template-columns:1fr;grid-template-rows:auto 1fr}.sidebar{flex-direction:row;flex-wrap:wrap;height:auto;position:sticky;top:0;z-index:10}.sb-foot{display:none}.brand{width:100%;padding-bottom:8px}}
+.modal-box label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500}
+.modal-box .grid2{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.chipgrp{margin-top:12px}.chipgrp .gl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);font-weight:600;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.achip{background:#f4f0e6;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;cursor:pointer;color:var(--ink);transition:background .12s,color .12s}
+.achip.active{background:var(--green);color:var(--ivory);border-color:var(--green)}
 </style>
 </head>
 <body>
@@ -223,7 +229,7 @@ function renderDash(){
   </div>`;
   const pend=db.recipes.filter(r=>r.status==='pending').slice(0,5);
   html+=`<div class="panel"><div class="panel-h"><h3>Oczekuje na akceptację</h3><button class="btn ghost sm" onclick="setView('mod')">Przejdź do moderacji</button></div>`;
-  if(pend.length){html+='<table><thead><tr><th>Przepis</th><th>Autor</th><th>Dodano</th><th></th></tr></thead><tbody>'+pend.map(r=>`<tr><td><b>${esc(r.title)}</b></td><td class="muted-cell">${esc(uMap[r.author_id]||'—')}</td><td class="muted-cell">${fmtD(r.created_at)}</td><td><div class="row"><button class="btn sm gold" onclick="openRecipe('${r.id}')">Podgląd</button><button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button></div></td></tr>`).join('')+'</tbody></table>';}
+  if(pend.length){html+='<table><thead><tr><th>Przepis</th><th>Autor</th><th>Dodano</th><th></th></tr></thead><tbody>'+pend.map(r=>`<tr><td><b>${esc(r.title)}</b></td><td class="muted-cell">${esc(uMap[r.author_id]||'—')}</td><td class="muted-cell">${fmtD(r.created_at)}</td><td><div class="row"><button class="btn sm gold" onclick="openEditor('${r.id}')">Edytuj</button><button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button></div></td></tr>`).join('')+'</tbody></table>';}
   else html+='<div class="empty">Brak przepisów oczekujących na akceptację.</div>';
   html+='</div>';
   const rc=db.comments.slice(0,5);
@@ -243,6 +249,7 @@ function renderRecipes(){
   let html=`<div class="panel"><div class="panel-h"><h3>Przepisy (${list.length})</h3><div class="tools">
     <input placeholder="Szukaj po nazwie…" value="${esc(recQ)}" oninput="recQ=this.value;renderInto()">
     <select onchange="recFilter=this.value;renderInto()">${opt('all','Wszystkie')}${opt('approved','Opublikowane')}${opt('pending','Oczekujące')}${opt('rejected','Odrzucone')}${opt('draft','Szkice')}</select>
+    <button class="btn gold sm" onclick="openEditor(null)">+ Nowy przepis</button>
   </div></div>`;
   html+=renderRecipeRows(list);
   html+='</div>';
@@ -255,7 +262,7 @@ function renderRecipeTable(list,isMod){
 function renderRecipeRows(list){
   if(!list.length)return '<div class="empty">Brak przepisów.</div>';
   return '<table><thead><tr><th>Przepis</th><th>Autor</th><th>Status</th><th>Ocena</th><th>Dodano</th><th></th></tr></thead><tbody>'+list.map(r=>{
-    let act=`<button class="btn sm gold" onclick="openRecipe('${r.id}')">Podgląd</button>`;
+    let act=`<button class="btn sm gold" onclick="openEditor('${r.id}')">Edytuj</button>`;
     if(r.status==='pending')act+=`<button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button><button class="btn sm danger" onclick="reject('${r.id}')">Odrzuć</button>`;
     else if(r.status==='approved')act+=`<button class="btn sm ghost" onclick="setStatus('${r.id}','rejected')">Ukryj</button>`;
     else act+=`<button class="btn sm" onclick="approve('${r.id}')">Opublikuj</button>`;
@@ -298,25 +305,77 @@ function renderTags(){
 function renderInto(){render();}
 
 // AKCJE
-async function openRecipe(id){
+const ADDGROUPS=[
+ ['Rodzaj posiłku *',[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_kolacja','Kolacje'],['m_przekaska','Przekąski'],['m_smaczek','Smaczki treningowe']]],
+ ['Główny składnik *',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']]],
+ ['Cel / potrzeby',[['g_bialko','Wysokobiałkowe'],['g_lekko','Lekkostrawne'],['g_nisko','Niskotłuszczowe'],['g_brzuch','Wrażliwy brzuch'],['g_alergik','Dla alergików'],['g_nadwaga','Nadwaga'],['g_aktywne','Aktywne'],['g_zabieg','Po zabiegach']]],
+ ['Wiek psa',[['a_szczeniak','Szczenięta'],['a_dorosly','Dorosłe'],['a_senior','Seniory']]],
+ ['Wielkość psa',[['s_male','Małe psy'],['s_srednie','Średnie psy'],['s_duze','Duże psy']]],
+ ['Typ / forma',[['f_mokra','Mokre karmy'],['f_pelno','Pełnoporcjowe'],['f_dodatek','Dodatki do karmy'],['f_bulion','Buliony i sosy'],['f_pasta','Pasty do maty'],['f_mroz','Do mrożenia'],['f_podroz','Na podróż']]],
+ ['Metoda przygotowania',[['met_gotowane','Gotowane'],['met_pieczone','Pieczone'],['met_duszone','Duszone'],['met_surowe','Surowe']]],
+ ['Przechowywanie',[['st_mroz','Do mrożenia'],['st_lodowka','Do lodówki'],['st_wynos','Na wynos'],['st_batch','Batch cooking']]],
+ ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
+ ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
+ ['Bez (alergeny)',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
+ ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+];
+const DIFFOPTS=[['easy','Łatwy'],['medium','Średni'],['hard','Trudny']];
+async function openEditor(id){
   $('modalBox').innerHTML='<div class="loading">Ładowanie…</div>';$('modal').classList.add('open');
-  const r=db.recipes.find(x=>x.id===id)||{};
-  const [ing,stp,tg]=await Promise.all([
-    sb.from('recipe_ingredients').select('name,amount,position').eq('recipe_id',id).order('position'),
-    sb.from('recipe_steps').select('body,position').eq('recipe_id',id).order('position'),
-    sb.from('recipe_tags').select('tags(label,grp)').eq('recipe_id',id)
-  ]);
-  const ings=(ing.data||[]),steps=(stp.data||[]),tags=(tg.data||[]).map(x=>x.tags).filter(Boolean);
-  let h=`<h3>${esc(r.title||'Przepis')}</h3><div class="muted">Autor: ${esc(uMap[r.author_id]||'—')} · ${statusBadge(r.status)}</div>`;
-  h+=`<div class="sec"><b>Składniki</b><ul>${ings.length?ings.map(i=>`<li>${esc(i.name)}${i.amount?' — '+esc(i.amount):''}</li>`).join(''):'<li class="muted">—</li>'}</ul></div>`;
-  h+=`<div class="sec"><b>Przygotowanie</b><ul>${steps.length?steps.map(s=>`<li>${esc(s.body)}</li>`).join(''):'<li class="muted">—</li>'}</ul></div>`;
-  h+=`<div class="sec"><b>Tagi</b><div class="taglist">${tags.length?tags.map(t=>`<span class="tag">${esc(t.label)}</span>`).join(''):'<span class="muted">—</span>'}</div></div>`;
-  h+='<div class="sec" style="display:flex;gap:8px;margin-top:20px">';
-  if(r.status==='pending')h+=`<button class="btn" onclick="approve('${id}')">Zatwierdź</button><button class="btn danger" onclick="reject('${id}')">Odrzuć</button>`;
-  else if(r.status==='approved')h+=`<button class="btn ghost" onclick="setStatus('${id}','rejected')">Ukryj</button>`;
-  else h+=`<button class="btn" onclick="approve('${id}')">Opublikuj</button>`;
-  h+=`<button class="btn ghost" onclick="closeModal()">Zamknij</button></div>`;
-  $('modalBox').innerHTML=h;
+  let r={title:'',description:'',difficulty:'easy',time_min:'',kcal:'',status:'draft',author_id:me.id},ings=[],steps=[],cur=new Set();
+  if(id){
+    r=Object.assign(r,db.recipes.find(x=>x.id===id)||{});
+    const [ing,stp,tg]=await Promise.all([
+      sb.from('recipe_ingredients').select('name,amount,position').eq('recipe_id',id).order('position'),
+      sb.from('recipe_steps').select('body,position').eq('recipe_id',id).order('position'),
+      sb.from('recipe_tags').select('tags(key)').eq('recipe_id',id)
+    ]);
+    ings=ing.data||[];steps=stp.data||[];(tg.data||[]).forEach(x=>{if(x.tags&&x.tags.key)cur.add(x.tags.key);});
+  }
+  const diff=DIFFOPTS.map(([v,l])=>`<option value="${v}" ${r.difficulty===v?'selected':''}>${l}</option>`).join('');
+  const groups=ADDGROUPS.map(g=>`<div class="chipgrp"><div class="gl">${g[0]}</div><div class="chips">${g[1].map(([k,l])=>`<button type="button" class="achip ${cur.has(k)?'active':''}" data-k="${k}" onclick="this.classList.toggle('active')">${esc(l)}</button>`).join('')}</div></div>`).join('');
+  const ingText=ings.map(i=>i.name+(i.amount?' - '+i.amount:'')).join('\n');
+  const stepText=steps.map(s=>s.body).join('\n');
+  const idarg=id?`'${id}'`:'null';
+  let foot=`<button class="btn" onclick="saveRecipeEdit(${idarg},false)">Zapisz</button>`;
+  if(!id||r.status!=='approved')foot+=`<button class="btn gold" onclick="saveRecipeEdit(${idarg},true)">Zapisz i opublikuj</button>`;
+  if(id&&r.status==='pending')foot+=`<button class="btn danger" onclick="reject('${id}')">Odrzuć</button>`;
+  if(id&&r.status==='approved')foot+=`<button class="btn ghost" onclick="setStatus('${id}','rejected')">Ukryj</button>`;
+  if(id&&isAdmin())foot+=`<button class="btn danger" onclick="delRecipe('${id}','${esc((r.title||'').replace(/'/g,''))}')">Usuń</button>`;
+  foot+=`<button class="btn ghost" onclick="closeModal()">Zamknij</button>`;
+  $('modalBox').innerHTML=`
+    <h3>${id?'Edytuj przepis':'Nowy przepis'}</h3>
+    ${id?`<div class="muted" style="margin-bottom:10px">Status: ${statusBadge(r.status)} · Autor: ${esc(uMap[r.author_id]||'—')}</div>`:''}
+    <div class="sec"><label>Nazwa</label><input id="e_title" value="${esc(r.title)}"></div>
+    <div class="sec grid2"><div><label>Trudność</label><select id="e_diff">${diff}</select></div><div><label>Czas (min)</label><input id="e_time" value="${r.time_min||''}" inputmode="numeric"></div><div><label>Kcal</label><input id="e_kcal" value="${r.kcal||''}" inputmode="numeric"></div></div>
+    <div class="sec"><label>Opis</label><textarea id="e_desc" rows="2">${esc(r.description)}</textarea></div>
+    <div class="sec"><b>Kategorie</b><div id="e_tags">${groups}</div></div>
+    <div class="sec"><label>Składniki (nazwa - ilość, każdy w nowej linii)</label><textarea id="e_ing" rows="5">${esc(ingText)}</textarea></div>
+    <div class="sec"><label>Kroki przygotowania (każdy w nowej linii)</label><textarea id="e_steps" rows="5">${esc(stepText)}</textarea></div>
+    <div class="sec" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px">${foot}</div>`;
+}
+async function saveRecipeEdit(id,publish){
+  const v=i=>{const el=$(i);return el?el.value.trim():'';};
+  const title=v('e_title');if(!title){toast('Podaj nazwę przepisu');return;}
+  const keys=[...document.querySelectorAll('#e_tags .achip.active')].map(b=>b.dataset.k);
+  if(!keys.some(k=>k.indexOf('m_')===0)||!keys.some(k=>k.indexOf('i_')===0)){toast('Wymagany rodzaj posiłku i główny składnik');return;}
+  const ing=v('e_ing').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(/\s[-\u2013]\s/);return[p[0]||l,p[1]||''];});
+  const steps=v('e_steps').split('\n').map(s=>s.trim()).filter(Boolean);
+  const row={title,description:v('e_desc')||null,difficulty:v('e_diff')||'easy',time_min:parseInt(v('e_time'))||null,kcal:parseInt(v('e_kcal'))||null};
+  let rid=id;
+  try{
+    if(!rid){const {data,error}=await sb.from('recipes').insert(Object.assign({author_id:me.id,status:'draft'},row)).select().single();if(error){toast('Błąd: '+error.message);return;}rid=data.id;}
+    else{const {error}=await sb.from('recipes').update(row).eq('id',rid);if(error){toast('Błąd: '+error.message);return;}}
+    await sb.from('recipe_tags').delete().eq('recipe_id',rid);
+    const {data:tg}=await sb.from('tags').select('id,key').in('key',keys);
+    if(tg&&tg.length)await sb.from('recipe_tags').insert(tg.map(t=>({recipe_id:rid,tag_id:t.id})));
+    await sb.from('recipe_ingredients').delete().eq('recipe_id',rid);
+    if(ing.length)await sb.from('recipe_ingredients').insert(ing.map((x,i)=>({recipe_id:rid,position:i,name:x[0],amount:x[1]})));
+    await sb.from('recipe_steps').delete().eq('recipe_id',rid);
+    if(steps.length)await sb.from('recipe_steps').insert(steps.map((b,i)=>({recipe_id:rid,position:i,body:b})));
+    if(publish){const {error:pe}=await sb.from('recipes').update({status:'approved'}).eq('id',rid);if(pe){toast('Zapisano, ale publikacja: '+pe.message);closeModal();await refreshAll();return;}}
+  }catch(e){toast('Błąd zapisu: '+(e.message||e));return;}
+  toast(publish?'Zapisano i opublikowano':'Zapisano zmiany');closeModal();await refreshAll();
 }
 function closeModal(){$('modal').classList.remove('open');}
 
