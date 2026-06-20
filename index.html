@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grey Henry — Society</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--green:#2A3431;--forest:#1C2420;--gold:#BFB178;--antique:#8F7F48;--parchment:#E8DFCB;--ivory:#F4EEE1;--line:rgba(191,177,120,.28);--serif:'Playfair Display',Georgia,serif;--sans:'Jost',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--sans);background:#15201d;color:var(--ivory);display:flex;align-items:center;justify-content:center;min-height:100vh;background-image:radial-gradient(120% 80% at 50% -10%,#26312d 0%,#15201d 60%);padding:24px 12px}
+.framewrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+.device{position:relative;width:420px;max-width:100%;height:860px;max-height:92vh;background:var(--green);border-radius:38px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(191,177,120,.18),0 0 0 10px #11181699}
+.app{position:absolute;inset:0;display:flex;flex-direction:column}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+.screen::-webkit-scrollbar{width:0}
+.webnote{font-family:var(--sans);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#7d8a82}
+svg{display:block}
+.pad{padding:0 22px}
+.muted{color:#9aa69d;font-size:13px;font-weight:300;line-height:1.6}
+.eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:400}
+.serif{font-family:var(--serif)}
+.sprig{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--gold);opacity:.85;margin:0 auto}
+.sprig::before,.sprig::after{content:"";height:1px;width:46px;background:linear-gradient(90deg,transparent,var(--gold))}
+.sprig::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.sprig span{font-size:11px;letter-spacing:.3em}
+.btn{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;padding:14px 22px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transition:.2s}
+.btn-gold{background:var(--gold);color:var(--forest);font-weight:500}
+.btn-gold:hover{background:#cdc08c}
+.outbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;color:var(--gold);border-radius:999px;padding:10px 16px;font-family:var(--sans);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:.18s}
+.outbtn:hover{border-color:var(--gold)}
+.outbtn svg{width:16px;height:16px}
+
+.splash{position:absolute;inset:0;z-index:60;background:var(--forest);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .8s ease,visibility .8s}
+.splash.hide{opacity:0;visibility:hidden}
+.splash img{width:192px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.4));animation:rise 1s ease both}
+.splash .tag{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:16px;letter-spacing:.04em;animation:rise 1s ease .2s both}
+.login{position:absolute;inset:0;z-index:55;background:linear-gradient(180deg,#FBF8F1,#F1EBDC);display:none;flex-direction:column;align-items:center;justify-content:center;padding:34px 26px;text-align:center}
+.login.show{display:flex}
+.login img{width:96px;margin-bottom:4px}
+.login .eyebrow{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:500}
+.login h2{font-family:var(--serif);font-weight:500;font-size:26px;color:#23302B;margin:8px 0 4px}
+.login p{font-size:13px;color:#6B7771;margin-bottom:18px;max-width:280px}
+.login input{width:100%;max-width:300px;font-family:var(--sans);font-size:14px;color:#23302B;background:#fff;border:1px solid rgba(42,52,49,.18);border-radius:12px;padding:13px 15px;margin-bottom:10px;font-weight:300}
+.login input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(42,52,49,.1)}
+.login .btn{width:100%;max-width:300px;border:none;border-radius:12px;padding:14px;font-family:var(--sans);font-size:14px;letter-spacing:.03em;cursor:pointer;background:var(--green);color:var(--ivory);margin-top:4px;box-shadow:0 12px 26px -12px rgba(42,52,49,.5)}
+.login .btn.ghost{background:transparent;color:var(--green);border:1px solid rgba(42,52,49,.2);box-shadow:none;margin-top:9px}
+.login .skip{margin-top:16px;background:none;border:none;color:var(--gold);font-size:12.5px;cursor:pointer;font-family:var(--sans)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.brandbar{display:flex;justify-content:center;padding:20px 0 6px}
+.brandbar .crest{height:84px;opacity:.97}
+.greetrow{padding-top:8px;padding-bottom:4px;text-align:center}
+.greetrow .greet{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:#9aa69d}
+.greetrow b{display:block;font-family:var(--serif);font-size:23px;font-weight:500;margin-top:4px}
+
+.searchpill{width:100%;display:flex;align-items:center;gap:11px;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:15px;padding:15px 16px;color:#9aa69d;font-family:var(--sans);font-size:14px;cursor:pointer;transition:.18s;margin-top:14px}
+.searchpill:hover{border-color:var(--gold)}
+.morebtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(191,177,120,.08);border:1px solid var(--line);border-radius:14px;padding:14px;color:var(--gold);font-family:var(--sans);font-size:13px;letter-spacing:.04em;cursor:pointer;transition:.18s}
+.morebtn:hover{background:rgba(191,177,120,.16)}
+.morebtn svg{width:16px;height:16px;transform:rotate(90deg)}
+.searchpill svg{width:19px;height:19px;color:var(--gold);flex:0 0 auto}
+.searchwrap{position:relative}
+.searchwrap{position:relative}
+.searchwrap>svg{position:absolute;left:15px;top:15px;width:18px;height:18px;color:var(--gold);pointer-events:none}
+.searchwrap input{width:100%;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:15px;padding:15px 42px 15px 44px;color:var(--ivory);font-family:var(--sans);font-size:14px}
+.searchwrap .clr{position:absolute;right:14px;top:13px;background:none;border:none;color:#9aa69d;cursor:pointer;padding:0}
+.searchwrap .clr svg{width:18px;height:18px}
+.rsticky{position:sticky;top:0;z-index:6;background:var(--green);padding:12px 0 8px;border-bottom:1px solid rgba(191,177,120,.14)}
+.toolrow{display:flex;gap:10px;padding:0 22px;align-items:center}
+.sortsel{flex:1;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:12px;padding:11px 14px;color:var(--ivory);font-family:var(--sans);font-size:13px;cursor:pointer}
+.sortsel:focus{outline:none;border-color:var(--gold)}
+.filterbtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;color:var(--ivory);border-radius:12px;padding:11px 15px;font-family:var(--sans);font-size:13px;cursor:pointer;transition:.18s}
+.filterbtn:hover{border-color:var(--gold)}
+.filterbtn.on{border-color:var(--gold);color:var(--gold)}
+.filterbtn svg{width:16px;height:16px}
+.fcount{background:var(--gold);color:var(--forest);border-radius:999px;font-size:11px;padding:1px 7px;font-weight:500}
+.fpanel{padding:8px 22px 6px}
+.fgroup{margin-top:0;border-top:1px solid rgba(191,177,120,.12);padding:11px 0 3px}
+.fgroup .fl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:9px}
+.gtoggle{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ivory);cursor:pointer;padding:3px 0}
+.gtoggle svg{width:15px;height:15px;color:var(--gold);transform:rotate(90deg);transition:transform .2s}
+.gtoggle.open svg{transform:rotate(-90deg)}
+.gtoggle.open{color:var(--gold)}
+.profrow{display:flex;flex-direction:column;gap:6px;margin:2px 0 6px;padding-bottom:11px;border-bottom:1px solid rgba(191,177,120,.12)}
+.profrow .outbtn{align-self:flex-start}
+.fchips{display:flex;flex-wrap:wrap;gap:9px}
+.fclear{margin-top:16px;font-size:12px;letter-spacing:.06em;color:var(--gold);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fclear svg{width:14px;height:14px}
+.searchwrap input:focus{outline:none;border-color:var(--gold)}
+.searchwrap input::placeholder{color:#7d8a82}
+
+.section-h{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 14px}
+.section-h h2{font-family:var(--serif);font-weight:500;font-size:21px}
+.section-h a{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);cursor:pointer}
+
+.hero{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(155deg,#33403b,#1d2724);padding:24px;min-height:206px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero .wm{position:absolute;right:-30px;top:-22px;width:200px;opacity:.16}
+.hero .eyebrow{margin-bottom:8px}
+.hero h3{font-family:var(--serif);font-size:26px;font-weight:500;line-height:1.12;max-width:80%}
+.hero p{color:#c7cfc8;font-size:13px;margin-top:8px;font-weight:300;max-width:82%}
+.hero .meta{display:flex;gap:16px;margin-top:16px;font-size:12px;color:var(--gold);letter-spacing:.06em}
+
+.chips{display:flex;gap:9px;overflow-x:auto;padding:2px 22px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.qcats{margin-top:16px}
+.chip{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:12px;letter-spacing:.06em;color:#cfd6cf;background:transparent;cursor:pointer;transition:.18s;white-space:nowrap}
+.chip:hover{border-color:var(--gold)}
+.chip.active{background:var(--gold);color:var(--forest);border-color:var(--gold);font-weight:500}
+
+.rail{display:flex;gap:14px;overflow-x:auto;padding:2px 22px 6px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rcard{flex:0 0 222px;cursor:pointer}
+.rcard.full{flex:1 1 auto;width:100%}
+.thumb{position:relative;height:144px;border-radius:18px;overflow:hidden;display:flex;align-items:flex-end;border:1px solid var(--line)}
+.thumb .wm{position:absolute;right:-18px;bottom:-20px;width:120px;opacity:.2}
+.dish{position:absolute;inset:0;width:100%;height:100%}
+.dhead .dish{border-radius:0}
+.dhead .dscrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,26,24,.15) 0%,rgba(20,26,24,.05) 45%,rgba(28,36,32,.85) 100%);z-index:1}
+.thumb .stars{position:absolute;left:14px;top:12px;color:var(--gold);font-size:13px;letter-spacing:3px;opacity:.7}
+.thumb.green{background:linear-gradient(150deg,#33403b,#212b27)}
+.thumb.forest{background:linear-gradient(150deg,#243029,#161e1b)}
+.thumb.gold{background:linear-gradient(150deg,#8F7F48,#6c5f33)}
+.thumb.parch{background:linear-gradient(150deg,#d9cfb4,#b9ac86)}
+.badge{position:absolute;top:12px;right:12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border-radius:999px;font-weight:500}
+.b-diet{background:var(--gold);color:var(--forest)}
+.b-verif{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.b-comm{background:rgba(244,238,225,.16);color:var(--ivory)}
+.rcard h4{font-family:var(--serif);font-size:16px;font-weight:500;margin:11px 0 4px;line-height:1.2}
+.rcard .sub{font-size:12px;color:#9aa69d;display:flex;gap:10px;letter-spacing:.04em;align-items:center}
+.rcard .sub .dot{color:var(--gold)}
+.list{display:flex;flex-direction:column;gap:18px;padding:0 22px}
+
+.detail{position:absolute;inset:0;z-index:50;background:var(--green);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .34s ease}
+.detail.open{transform:none}
+.detail .scr{flex:1;overflow-y:auto;scrollbar-width:none}
+.detail .scr::-webkit-scrollbar{display:none}
+.dhead{position:relative;height:280px;display:flex;align-items:flex-end;padding:22px}
+.dhead .wm{position:absolute;right:-30px;top:-10px;width:240px;opacity:.18}
+.circ-btn{position:absolute;top:18px;width:44px;height:44px;border-radius:50%;background:rgba(20,26,24,.55);backdrop-filter:blur(6px);border:1px solid var(--line);color:var(--ivory);display:grid;place-items:center;cursor:pointer;z-index:2}
+.circ-btn svg{width:20px;height:20px}
+.dhead .back{left:18px}
+.dhead .fav{right:18px;color:var(--gold)}
+.dhead .fav.on{background:var(--gold);color:var(--forest);border-color:var(--gold)}
+.dhead .fav.on svg{fill:currentColor}
+.dtitle{position:relative;z-index:2}
+.dtitle .badge{position:static;display:inline-block;margin-bottom:12px}
+.dtitle h1{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1.08;margin-top:6px}
+.dbody{background:var(--ivory);color:var(--green);border-radius:26px 26px 0 0;margin-top:-22px;position:relative;z-index:3;padding:26px 22px 30px}
+.metric-row{display:flex;justify-content:space-between;text-align:center;border:1px solid rgba(42,52,49,.14);border-radius:16px;padding:16px 6px;margin-bottom:22px}
+.metric{flex:1}
+.metric b{display:block;font-family:var(--serif);font-size:18px;color:var(--green)}
+.metric span{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#7d8478}
+.metric+.metric{border-left:1px solid rgba(42,52,49,.12)}
+.dbody h3{font-family:var(--serif);font-size:18px;margin:24px 0 12px;color:var(--green)}
+.dbody p.lead{color:#54605a;font-size:14px;line-height:1.7;font-weight:300}
+.ing{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(42,52,49,.1);font-size:14px}
+.ing span:last-child{color:var(--antique);font-weight:500}
+.step{display:flex;gap:14px;padding:11px 0}
+.step .n{flex:0 0 28px;height:28px;border-radius:50%;background:var(--green);color:var(--gold);font-family:var(--serif);display:grid;place-items:center;font-size:14px}
+.step p{font-size:14px;line-height:1.6;color:#3c463f;padding-top:3px}
+.tagline{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.fit{font-size:12px;padding:7px 12px;border-radius:999px;letter-spacing:.02em;display:inline-flex;align-items:center;gap:5px}
+.fit svg{width:13px;height:13px}
+.fit.ok{background:rgba(143,127,72,.14);color:var(--antique)}
+.fit.no{background:rgba(150,60,40,.12);color:#9a4a30}
+.warn{display:flex;gap:12px;align-items:flex-start;background:rgba(143,127,72,.1);border:1px solid rgba(143,127,72,.3);border-radius:14px;padding:14px 16px;margin-top:16px}
+.warn .i svg{width:22px;height:22px;color:var(--antique)}
+.warn p{font-size:12.5px;color:#5b5436;line-height:1.55}
+.warn.danger{background:rgba(150,60,40,.1);border-color:rgba(150,60,40,.35)}
+.warn.danger .i svg{color:#9a4a30}
+.warn.danger p{color:#7a3320}
+.status-pill{display:inline-block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:rgba(191,177,120,.18);color:var(--antique);font-weight:500}
+.comment{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid rgba(42,52,49,.1)}
+.comment .av{width:34px;height:34px;border-radius:50%;background:var(--green);color:var(--gold);display:grid;place-items:center;font-family:var(--serif);font-size:14px;flex:0 0 auto}
+.comment b{font-size:13px;color:var(--green)}
+.comment small{color:#8a9189;font-size:11px;margin-left:6px}
+.comment p{font-size:13px;color:#54605a;line-height:1.5;margin-top:3px}
+.cbox{display:flex;gap:10px;margin-top:14px}
+.cbox input{flex:1;background:#fff;border:1px solid rgba(42,52,49,.18);border-radius:12px;padding:12px 14px;font-family:var(--sans);font-size:13px;color:var(--green)}
+.cbox input:focus{outline:none;border-color:var(--antique)}
+.cbox button{flex:0 0 auto;width:46px;border-radius:12px;border:none;background:var(--green);color:var(--gold);cursor:pointer;display:grid;place-items:center}
+.cbox button svg{width:18px;height:18px}
+.disclaim{font-size:11px;color:#8a9189;text-align:center;margin-top:26px;line-height:1.6;font-weight:300}
+
+.profhead{background:linear-gradient(160deg,#2f3b36,#1c2522);padding:26px 22px 24px;text-align:center;position:relative}
+.profhead .crest{height:90px;margin:0 auto 8px}
+.profhead h2{font-family:var(--serif);font-size:22px;font-weight:500}
+.profhead p{color:#9aa69d;font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px}
+.dogcard{background:rgba(244,238,225,.05);border:1px solid var(--line);border-radius:20px;padding:18px 44px 18px 18px;display:flex;gap:16px;align-items:center;position:relative}
+.dogedit{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--gold);display:grid;place-items:center;cursor:pointer}
+.dogedit svg{width:15px;height:15px}
+.linkdel{background:none;border:none;color:#b25a3e;cursor:pointer;font-family:var(--sans);font-size:12px;display:inline-flex;align-items:center;gap:5px;letter-spacing:.04em}
+.linkdel svg{width:13px;height:13px}
+.ctx{display:inline-flex;align-items:center;gap:9px;background:rgba(191,177,120,.16);color:var(--gold);border-radius:999px;padding:8px 8px 8px 15px;font-size:12.5px;letter-spacing:.03em;margin:2px 22px 0}
+.ctx button{background:var(--gold);color:var(--forest);border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.ctx button svg{width:13px;height:13px}
+.dogcard .ava{width:60px;height:60px;border-radius:50%;background:linear-gradient(150deg,#8F7F48,#6c5f33);display:grid;place-items:center;font-family:var(--serif);font-size:24px;color:var(--ivory);flex:0 0 auto}
+.dogcard .ava svg{width:24px;height:24px}
+.dogcard h4{font-family:var(--serif);font-size:18px;font-weight:500}
+.dogcard .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.dogcard .tags em{font-style:normal;font-size:11px;background:rgba(191,177,120,.16);color:var(--gold);padding:4px 9px;border-radius:999px;letter-spacing:.02em}
+.dogmeta{font-size:12px;color:#9aa69d;margin-top:8px;font-weight:300;line-height:1.5}
+.dognote{font-family:var(--serif);font-style:italic;color:#cfd6cf;font-size:13.5px;line-height:1.5;margin-top:11px;padding-left:12px;border-left:2px solid var(--gold)}
+.jentry{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid rgba(191,177,120,.12)}
+.jentry .dot{flex:0 0 7px;height:7px;border-radius:50%;background:var(--gold);margin-top:7px}
+.jentry .jt{font-size:13.5px;color:#dfe4de;line-height:1.5;font-weight:300}
+.jentry small{color:#8a9189;font-size:11px;display:block;margin-top:4px;letter-spacing:.04em}
+.jbox{display:flex;gap:10px;margin-top:14px;margin-bottom:6px}
+.jbox input{flex:1;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--ivory);font-family:var(--sans);font-size:13px}
+.jbox input:focus{outline:none;border-color:var(--gold)}
+.jbox input::placeholder{color:#6f7a72}
+.jbox button{flex:0 0 auto;width:46px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--gold);cursor:pointer;display:grid;place-items:center}
+.jbox button svg{width:18px;height:18px}
+.jtoggle{display:inline-flex;align-items:center;gap:7px;color:var(--gold);font-size:12px}
+.jtoggle svg{width:16px;height:16px;transform:rotate(90deg);transition:transform .2s}
+.jtoggle.open svg{transform:rotate(-90deg)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+.field input,.field select,.field textarea{width:100%;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--ivory);font-family:var(--sans);font-size:14px}
+.field textarea{resize:vertical;min-height:84px;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field input::placeholder,.field textarea::placeholder{color:#6f7a72}
+.row2{display:flex;gap:12px}.row2 .field{flex:1}
+.checkrow{display:flex;align-items:center;gap:11px;cursor:pointer;margin:4px 0 18px}
+.checkrow .box{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);display:grid;place-items:center;color:transparent;flex:0 0 auto;transition:.15s}
+.checkrow .box svg{width:14px;height:14px}
+.checkrow.on .box{background:var(--gold);border-color:var(--gold);color:var(--forest)}
+.checkrow span{font-size:13px;color:#c7cfc8;font-weight:300}
+.addhead{display:flex;align-items:center;gap:14px;padding:20px 22px 8px}
+.addhead .back{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ivory);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.addhead .back svg{width:20px;height:20px}
+.addhead h2{font-family:var(--serif);font-size:22px;font-weight:500}
+.menu-item{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid rgba(191,177,120,.12);cursor:pointer}
+.menu-item .ic{color:var(--gold);flex:0 0 auto;display:grid;place-items:center;width:22px}
+.menu-item .ic svg{width:20px;height:20px}
+.menu-item .lbl{flex:1;font-size:14px}
+.menu-item .ar{color:#6f7a72;flex:0 0 auto}
+.menu-item .ar svg{width:17px;height:17px}
+
+.day{display:flex;gap:13px;padding:0 22px;margin-bottom:12px}
+.daytag{flex:0 0 48px;min-height:50px;border-radius:14px;background:rgba(191,177,120,.13);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px}
+.dayslot{flex:1;border:1px solid var(--line);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.16s}
+.dayslot:hover{border-color:var(--gold)}
+.dayslot.empty{border-style:dashed;color:#8a9189;justify-content:center;font-size:13px}
+.dayslot.empty svg{width:16px;height:16px;margin-right:6px}
+.dayslot h5{font-family:var(--serif);font-size:15px;font-weight:500}
+.dayslot .m{font-size:11px;color:#9aa69d;margin-top:2px}
+.dayslot .ch{margin-left:auto;color:var(--gold)}
+.dayslot .ch svg{width:18px;height:18px}
+.shop{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid rgba(191,177,120,.12);cursor:pointer}
+.shop .ck{flex:0 0 21px;height:21px;border-radius:6px;border:1.5px solid var(--line);margin-top:1px;display:grid;place-items:center;color:transparent;transition:.15s}
+.shop .ck svg{width:14px;height:14px}
+.shop.done .ck{background:var(--gold);border-color:var(--gold);color:var(--forest)}
+.shop.done h5{text-decoration:line-through;opacity:.5}
+.shop h5{font-size:14px;font-weight:500}
+.shop p{font-size:12px;color:#9aa69d;margin-top:2px;font-weight:300}
+.shopadd{display:flex;gap:10px;margin-top:14px}
+.shopadd input{flex:1;background:rgba(244,238,225,.06);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--ivory);font-family:var(--sans);font-size:13px}
+.shopadd input:focus{outline:none;border-color:var(--gold)}
+.shopadd input::placeholder{color:#6f7a72}
+.shopadd button{flex:0 0 auto;width:46px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--gold);cursor:pointer;display:grid;place-items:center}
+.shopadd button svg{width:18px;height:18px}
+
+.comm-post{background:rgba(244,238,225,.05);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.comm-post .ph{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.comm-post .ph .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(150deg,#8F7F48,#6c5f33);display:grid;place-items:center;color:var(--ivory);font-family:var(--serif);font-size:15px}
+.comm-post .ph b{font-size:13px;font-weight:500}.comm-post .ph small{display:block;color:#8a9189;font-size:11px}
+.comm-post .pic{height:120px;border-radius:12px;margin-bottom:11px;position:relative;overflow:hidden}
+.comm-post p{font-size:13px;color:#c7cfc8;line-height:1.6;font-weight:300}
+.comm-post .react{display:flex;gap:18px;margin-top:11px;color:var(--gold);font-size:12px;letter-spacing:.04em}
+.comm-post .react span{display:inline-flex;align-items:center;gap:6px}
+.comm-post .react svg{width:15px;height:15px}
+
+.nav{display:flex;background:var(--forest);border-top:1px solid var(--line);padding:9px 6px 14px}
+.nav button{flex:1;background:none;border:none;color:#7d8a82;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:5px 0;transition:.18s}
+.nav button svg{width:23px;height:23px}
+.nav button .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:0;transition:.2s}
+.nav button.active{color:var(--gold)}
+.nav button.active .dot{opacity:1}
+.toast{position:absolute;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--forest);padding:11px 20px;border-radius:999px;font-size:12px;letter-spacing:.05em;font-weight:500;opacity:0;transition:.3s;z-index:40;pointer-events:none;white-space:nowrap;max-width:88%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ====== warstwa dopracowania wizualnego ====== */
+*{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{background:#141d1b;background-image:radial-gradient(135% 90% at 50% -15%,#2c3833 0%,#18221f 46%,#0f1614 100%)}
+.device{box-shadow:0 50px 110px -32px rgba(0,0,0,.78),0 0 0 1px rgba(191,177,120,.22),0 0 0 11px rgba(15,20,18,.6),inset 0 0 0 1px rgba(255,255,255,.02)}
+.eyebrow{letter-spacing:.34em;color:#cbbd82}
+
+/* przyciski + mikrointerakcje */
+.outbtn,.filterbtn,.morebtn,.chip,.btn,.btn-gold,.rcard,.dayslot,.menu-item,.shop,.dogcard{transition:transform .13s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease}
+.btn-gold{box-shadow:0 10px 24px -12px rgba(191,177,120,.7)}
+.btn-gold:hover{background:#d2c693;box-shadow:0 13px 30px -12px rgba(191,177,120,.85)}
+.btn:active,.btn-gold:active,.outbtn:active,.morebtn:active,.filterbtn:active,.chip:active,.rcard:active,.dayslot:active,.menu-item:active,.shop:active{transform:scale(.975)}
+
+/* chipy */
+.chip{background:rgba(244,238,225,.045);border-color:rgba(191,177,120,.22)}
+.chip:hover{border-color:var(--gold);background:rgba(191,177,120,.09)}
+.chip.active{box-shadow:0 6px 16px -8px rgba(191,177,120,.8)}
+
+/* karty przepisów + kafle */
+.thumb{box-shadow:0 16px 30px -22px rgba(0,0,0,.85);border-color:rgba(191,177,120,.2)}
+.thumb::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 75% at 50% -18%,rgba(255,255,255,.16),transparent 60%);pointer-events:none}
+.thumb.gold::after,.thumb.parch::after{background:radial-gradient(120% 75% at 50% -18%,rgba(255,255,255,.32),transparent 62%)}
+.thumb.green{background:linear-gradient(150deg,#39463f 0%,#222d28 100%)}
+.thumb.forest{background:linear-gradient(150deg,#27332c 0%,#161e1b 100%)}
+.thumb.gold{background:linear-gradient(150deg,#a08c4f 0%,#6f6132 100%)}
+.thumb.parch{background:linear-gradient(150deg,#e3d9be 0%,#bdb086 100%)}
+.badge{z-index:2;box-shadow:0 4px 10px -4px rgba(0,0,0,.4)}
+
+/* baner Polecane dnia — element sygnaturowy */
+.hero{background:linear-gradient(150deg,#37443e 0%,#212c28 55%,#1a231f 100%);box-shadow:0 26px 54px -30px rgba(0,0,0,.72);padding:26px}
+.hero::before{content:"";position:absolute;inset:10px;border:1px solid rgba(191,177,120,.26);border-radius:15px;pointer-events:none}
+.hero::after{content:"";position:absolute;width:230px;height:230px;right:-72px;top:-84px;background:radial-gradient(circle,rgba(191,177,120,.2),transparent 62%);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+
+/* nagłówki sekcji — sygnatura w rombie */
+.section-h h2::before{content:"";display:inline-block;width:6px;height:6px;background:var(--gold);transform:rotate(45deg);margin-right:11px;vertical-align:middle;opacity:.85;box-shadow:0 0 10px rgba(191,177,120,.5)}
+
+/* nawigacja dolna */
+.nav{padding:11px 6px 16px;box-shadow:0 -12px 34px -22px rgba(0,0,0,.7)}
+.nav button svg{transition:transform .18s ease}
+.nav button.active svg{transform:translateY(-1px) scale(1.07)}
+
+/* karta przepisu — szczegóły */
+.dbody{box-shadow:0 -20px 44px -26px rgba(0,0,0,.5)}
+.metric-row{background:rgba(42,52,49,.03)}
+.step .n{box-shadow:0 6px 14px -8px rgba(42,52,49,.55)}
+
+/* profil + społeczność */
+.dogcard,.comm-post{box-shadow:0 16px 30px -24px rgba(0,0,0,.72)}
+.dogcard .ava,.comm-post .ph .av{box-shadow:0 8px 18px -10px rgba(143,127,72,.75)}
+
+/* pola — poświata przy focusie */
+.searchwrap input:focus,.field input:focus,.field select:focus,.field textarea:focus,.sortsel:focus,.jbox input:focus,.cbox input:focus,.shopadd input:focus{box-shadow:0 0 0 3px rgba(191,177,120,.14)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.brandsign{display:flex;flex-direction:column;align-items:center;gap:11px;padding:30px 0 38px;opacity:.55}
+.brandsign img{height:38px}
+.brandsign span{font-family:var(--serif);font-style:italic;font-size:12.5px;letter-spacing:.06em;color:#9aa69d}
+.cardfav{position:absolute;top:11px;left:11px;z-index:2;width:34px;height:34px;border-radius:50%;border:none;background:rgba(20,26,24,.5);backdrop-filter:blur(4px);color:#f4eee1;display:grid;place-items:center;cursor:pointer;transition:transform .13s ease,background .18s ease}
+.cardfav svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9}
+.cardfav:hover{background:rgba(20,26,24,.7)}
+.cardfav:active{transform:scale(.88)}
+.cardfav.on{color:var(--gold)}
+.cardfav.on svg{fill:var(--gold);stroke:var(--gold)}
+.dayrm{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:#9aa69d;display:grid;place-items:center;cursor:pointer;transition:.18s}
+.dayrm:hover{color:#b25a3e;border-color:rgba(178,90,62,.5)}
+.dayrm svg{width:14px;height:14px}
+@media (max-width:440px){.device{height:88vh;border-radius:28px}}
+/* ============ JASNY MOTYW ============ */
+body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#efe9db 0%,#ddd6c5 72%)}
+.webnote{color:#6b6f64}
+.device{background:#FBF8F1;box-shadow:0 50px 110px -34px rgba(40,50,45,.42),0 0 0 1px rgba(42,52,49,.16),0 0 0 11px rgba(232,226,212,.7),inset 0 0 0 1px rgba(255,255,255,.5)}
+.screen{color:#23302B}
+.muted,.greetrow .greet,.dayslot .m,.shop p,.dogmeta,.rcard .sub{color:#6B7771}
+.disclaim,.comm-post .ph small,.comment small,.jentry small,.brandsign span,.dayslot.empty,.menu-item .ar{color:#7c857c}
+.eyebrow,.section-h a,.fgroup .fl,.fclear,.field label,.menu-item .ic,.dayslot .ch,.searchwrap>svg,.searchpill svg,.gtoggle svg{color:#8F7F48}
+.sprig{color:#9a8c52;opacity:.9}
+.rsticky{background:#FBF8F1;border-bottom-color:rgba(42,52,49,.12)}
+/* przyciski zielone */
+.btn-gold{background:var(--green);color:var(--ivory);box-shadow:0 12px 26px -12px rgba(42,52,49,.5)}
+.btn-gold:hover{background:#1f2724;box-shadow:0 14px 30px -12px rgba(42,52,49,.6)}
+.outbtn{color:#2f3b35;border-color:rgba(42,52,49,.22)}
+.outbtn:hover{border-color:var(--green)}
+.morebtn{background:rgba(42,52,49,.05);border-color:rgba(42,52,49,.16);color:#2f3b35}
+.morebtn:hover{background:rgba(42,52,49,.1)}
+.filterbtn{color:#2f3b35;border-color:rgba(42,52,49,.2)}
+.filterbtn:hover,.filterbtn.on{border-color:var(--green);color:var(--green)}
+.fcount{background:var(--green);color:var(--ivory)}
+/* chipy */
+.chip{background:#fff;border-color:rgba(42,52,49,.18);color:#3a463f}
+.chip:hover{border-color:var(--green);background:#f2efe5}
+.chip.active{background:var(--green);color:var(--ivory);border-color:var(--green);box-shadow:0 6px 16px -8px rgba(42,52,49,.45)}
+/* pola */
+.searchpill,.searchwrap input,.sortsel,.field input,.field select,.field textarea,.jbox input,.shopadd input,.cbox input{background:#fff;border-color:rgba(42,52,49,.18);color:#23302B}
+.searchwrap input::placeholder,.field input::placeholder,.field textarea::placeholder,.shopadd input::placeholder{color:#9aa194}
+.searchwrap .clr{color:#7c857c}
+.sortsel:focus,.searchwrap input:focus,.field input:focus,.field select:focus,.field textarea:focus,.jbox input:focus,.shopadd input:focus,.cbox input:focus{border-color:var(--green)}
+.searchwrap input:focus,.field input:focus,.field select:focus,.field textarea:focus,.sortsel:focus,.jbox input:focus,.cbox input:focus,.shopadd input:focus{box-shadow:0 0 0 3px rgba(42,52,49,.1)}
+.dogedit,.jbox button,.shopadd button{color:#8F7F48;border-color:rgba(42,52,49,.2)}
+/* panele filtrów */
+.fgroup{border-top-color:rgba(42,52,49,.12)}
+.gtoggle{color:#2f3b35}
+.gtoggle.open{color:var(--green)}
+.profrow{border-bottom-color:rgba(42,52,49,.12)}
+/* sygnatura sekcji */
+.section-h h2,.rcard h4,.dogcard h4,.comm-post .ph b,.profhead h2{color:#23302B}
+.section-h h2::before{background:#BFB178;box-shadow:0 0 8px rgba(143,127,72,.35)}
+/* HERO (zielony) */
+.hero{border-color:rgba(42,52,49,.18)}
+.hero h3{color:var(--ivory)}
+.hero p{color:#c7cfc8}
+.hero::before{border-color:rgba(191,177,120,.3)}
+/* kafle + odznaki czytelne na każdym tle */
+.thumb{border-color:rgba(42,52,49,.12);box-shadow:0 16px 30px -22px rgba(40,50,45,.35)}
+.b-verif{background:rgba(28,36,32,.55);border-color:transparent;color:var(--ivory)}
+.b-comm{background:rgba(28,36,32,.55);color:var(--ivory)}
+/* DETAL — nagłówek zawsze zielony, tytuł jasny */
+.detail{background:#FBF8F1}
+.dhead.thumb{background:linear-gradient(155deg,#33403b 0%,#1b2420 100%)}
+.dtitle h1{color:var(--ivory)}
+.circ-btn{border-color:rgba(255,255,255,.18)}
+/* PROFIL jasny, herb zielony */
+.profhead{background:#FBF8F1}
+.profhead p{color:#6B7771}
+/* karty na bieli */
+.dogcard,.comm-post{background:#fff;border-color:rgba(42,52,49,.12);box-shadow:0 14px 28px -22px rgba(40,50,45,.3)}
+.dogcard .tags em{background:rgba(42,52,49,.08);color:#3a463f}
+.dognote{color:#3c463f;border-left-color:#BFB178}
+.jentry{border-bottom-color:rgba(42,52,49,.1)}
+.jentry .jt{color:#3c463f}
+.comm-post p{color:#4a544d}
+.comm-post .react{color:#8F7F48}
+.ctx{background:rgba(42,52,49,.08);color:#2f3b35}
+.ctx button{background:var(--green);color:var(--ivory)}
+.status-pill{background:rgba(143,127,72,.16);color:#8F7F48}
+/* planer */
+.daytag{background:rgba(42,52,49,.07);color:#2f3b35}
+.dayslot{border-color:rgba(42,52,49,.18)}
+.dayslot:hover{border-color:var(--green)}
+.shop{border-bottom-color:rgba(42,52,49,.1)}
+.shop .ck{border-color:rgba(42,52,49,.25)}
+.shop.done .ck{background:var(--green);border-color:var(--green);color:var(--ivory)}
+/* menu / add */
+.menu-item{border-bottom-color:rgba(42,52,49,.12)}
+.addhead .back{color:var(--green);border-color:rgba(42,52,49,.2)}
+.checkrow span{color:#3c463f}
+.checkrow .box{border-color:rgba(42,52,49,.3)}
+.checkrow.on .box{background:var(--green);border-color:var(--green);color:var(--ivory)}
+/* nawigacja jasna */
+.nav{background:#fff;border-top-color:rgba(42,52,49,.1);box-shadow:0 -12px 30px -24px rgba(40,50,45,.3)}
+.nav button{color:#8a938b}
+.nav button.active{color:var(--green)}
+.nav button.active .dot{background:#BFB178}
+/* ====== WZBOGACENIE JASNEGO MOTYWU ====== */
+.screen{background:linear-gradient(180deg,#FBF8F1 0%,#F3EDDF 100%)}
+.rsticky{background:#FBF8F1}
+.detail{background:linear-gradient(180deg,#FBF8F1 0%,#F3EDDF 100%)}
+/* elegancka złota ramka wewnątrz kafelków przepisów */
+.thumb::before{content:"";position:absolute;inset:9px;border:1px solid rgba(191,177,120,.5);border-radius:12px;z-index:1;pointer-events:none}
+.thumb.green::before,.thumb.forest::before{border-color:rgba(191,177,120,.42)}
+.dhead.thumb::before{display:none}
+/* białe karty: delikatny gradient + złoty akcent u góry + głębia */
+.dogcard,.comm-post{background:linear-gradient(180deg,#ffffff 0%,#fbf7ee 100%);box-shadow:0 18px 36px -24px rgba(40,50,45,.32)}
+.comm-post{position:relative}
+.dogcard::after,.comm-post::after{content:"";position:absolute;left:20px;right:20px;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(191,177,120,.6),transparent);pointer-events:none}
+/* głębia pól i przycisków, by nie były płaskie */
+.searchwrap input,.sortsel,.filterbtn,.morebtn,.field input,.field select,.field textarea,.searchpill,.jbox input,.shopadd input,.cbox input{box-shadow:0 2px 8px -5px rgba(40,50,45,.18)}
+.chip{box-shadow:0 2px 7px -4px rgba(40,50,45,.16)}
+.chip.active{box-shadow:0 6px 16px -8px rgba(42,52,49,.5)}
+/* metryki w przepisie — subtelne tło i obwódka */
+.metric-row{background:linear-gradient(180deg,#fff,#fbf7ee);border-color:rgba(143,127,72,.22)}
+/* listy zakupów / dni — lekka głębia slotów */
+.dayslot,.daytag{box-shadow:0 3px 10px -7px rgba(40,50,45,.25)}
+/* sprig (ozdobnik) bardziej widoczny na jasnym */
+.sprig::before,.sprig::after{background:linear-gradient(90deg,transparent,#bfae74)}
+.sprig::after{background:linear-gradient(90deg,#bfae74,transparent)}
+/* baner sygnatury sekcji — wyraźniejszy romb */
+.section-h h2::before{background:#BFB178;box-shadow:0 0 9px rgba(143,127,72,.5)}
+/* delikatna złota linia pod herbem w nagłówkach ekranów */
+.brandbar{flex-direction:column;align-items:center;gap:10px}
+.brandbar::after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(143,127,72,.6),transparent)}
+</style>
+</head>
+<body>
+<div class="framewrap">
+  <div class="device">
+    <div class="splash" id="splash"><img src="logo/crest_ivory.png" alt="The Grey Henry Society"><div class="tag">Troska godna rodowodu</div></div>
+    <div class="login" id="login"><img src="logo/crest_green.png" alt=""><div class="eyebrow">The Grey Henry Society</div><h2>Witaj w Society</h2><p>Zaloguj się lub załóż konto, aby zapisywać psy, ulubione i własne przepisy.</p>
+      <input id="lg_name" placeholder="Imię (do rejestracji)">
+      <input id="lg_email" type="email" placeholder="E-mail">
+      <input id="lg_pass" type="password" placeholder="Hasło (min. 6 znaków)">
+      <button class="btn" onclick="doLogin()">Zaloguj</button>
+      <button class="btn ghost" onclick="doRegister()">Załóż konto</button>
+      <button class="btn ghost" onclick="doGoogle()">Zaloguj przez Google</button>
+      <button class="skip" onclick="browseGuest()">Przeglądaj bez logowania →</button>
+    </div>
+    <div class="app">
+      <div class="screen" id="screen"></div>
+      <div class="toast" id="toast"></div>
+      <nav class="nav" id="nav"></nav>
+    </div>
+    <div class="detail" id="detail"><div class="scr" id="detailScr"></div></div>
+  </div>
+  <div class="webnote">Ten sam interfejs skaluje się do wersji web · prototyp MVP</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const CREST="logo/crest_green.png", MONO="logo/mono_ivory.png", MONOG="logo/mono_gold.png";
+const star='\u2726';
+function ico(n){const P={
+  home:'<path d="M4 11.3 12 4l8 7.3"/><path d="M6.2 10v9.5h11.6V10"/>',
+  book:'<path d="M12 6.2C10.3 5.1 7.9 4.5 5.3 4.5V18c2.6 0 5 .6 6.7 1.6 1.7-1 4.1-1.6 6.7-1.6V4.5c-2.6 0-5 .6-6.7 1.7Z"/><path d="M12 6.2V19.6"/>',
+  calendar:'<rect x="4" y="5.2" width="16" height="15" rx="2.4"/><path d="M8 3.2v4M16 3.2v4M4 9.6h16"/>',
+  users:'<circle cx="9.2" cy="8.4" r="3.1"/><path d="M3.6 19.2a5.6 5.6 0 0 1 11.2 0"/><path d="M16 5.7a3 3 0 0 1 0 5.5"/><path d="M16.8 13.4A4.9 4.9 0 0 1 20.6 19.2"/>',
+  user:'<circle cx="12" cy="8.2" r="3.7"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+  search:'<circle cx="11" cy="11" r="6.4"/><path d="m20 20-3.7-3.7"/>',
+  heart:'<path d="M12 20s-7.2-4.6-9.3-9.1C1.4 8 2.7 4.8 6 4.8c2 0 3.2 1.3 4 2.5.8-1.2 2-2.5 4-2.5 3.3 0 4.6 3.2 3.3 6.1C19.2 15.4 12 20 12 20Z"/>',
+  arrow:'<path d="M15 5l-7 7 7 7"/>',
+  chev:'<path d="M9 6l6 6-6 6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  flag:'<path d="M6 21V4.5M6 4.5h11l-2 3.2 2 3.2H6"/>',
+  bell:'<path d="M6 9.5a6 6 0 0 1 12 0c0 4.8 2 5.8 2 5.8H4s2-1 2-5.8Z"/><path d="M10.2 19a1.9 1.9 0 0 0 3.6 0"/>',
+  help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.6a2.5 2.5 0 0 1 4.7 1.2c0 1.7-2.3 2-2.3 3.6"/><path d="M12 17.4h.01"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8h.01"/>',
+  warn:'<path d="M12 4 2.6 20h18.8Z"/><path d="M12 10v4.2M12 17.3h.01"/>',
+  check:'<path d="M5 12.5 10 17 19 7"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  chat:'<path d="M20 12a7.5 7.5 0 0 1-10.8 6.7L4 20l1.4-4.6A7.5 7.5 0 1 1 20 12Z"/>',
+  image:'<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5 18 4.5-4.5 3 3L16 12l3 3.5"/>',
+  filter:'<path d="M4 5h16l-6 7.2V19l-4 2v-8.8Z"/>',
+  send:'<path d="M4 11.5 20 4l-6 16-3-7-7-1.5Z"/>',
+  edit:'<path d="M14.5 5.5l4 4M4 20l1.2-4.2L15 6l3 3L8.2 18.8 4 20Z"/>'
+};return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>';}
+
+const CATS=[['all','Wszystkie'],['codzienne','Codzienne'],['gotowane','Posiłki gotowane'],['barf','BARF'],['przekaski','Przekąski'],['smaczki','Smaczki treningowe'],['niskokaloryczne','Niskokaloryczne'],['wysokobialkowe','Wysokobiałkowe'],['lekkostrawne','Lekkostrawne'],['szczeniaki','Szczenięta'],['seniory','Seniory'],['aktywne','Psy aktywne'],['sezonowe','Sezonowe']];
+const MEALCATS=[['all','Wszystkie'],['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_kolacja','Kolacje'],['m_przekaska','Przekąski'],['m_smaczek','Smaczki']];
+const CATGROUPS=[
+ ['Rodzaj posiłku',[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_kolacja','Kolacje'],['m_przekaska','Przekąski'],['m_smaczek','Smaczki treningowe']]],
+ ['Typ / forma posiłku',[['f_mokra','Mokre karmy'],['f_pelno','Pełnoporcjowe'],['f_dodatek','Dodatki do karmy'],['f_bulion','Buliony i sosy'],['f_pasta','Pasty do maty'],['f_mroz','Do mrożenia'],['f_podroz','Na podróż']]],
+ ['Wiek psa',[['a_szczeniak','Szczenięta'],['a_dorosly','Dorosłe'],['a_senior','Seniory']]],
+ ['Wielkość psa',[['s_male','Małe psy'],['s_srednie','Średnie psy'],['s_duze','Duże psy']]],
+ ['Cel / potrzeby',[['g_bialko','Wysokobiałkowe'],['g_lekko','Lekkostrawne'],['g_nisko','Niskotłuszczowe'],['g_brzuch','Wrażliwy brzuch'],['g_alergik','Dla alergików'],['g_nadwaga','Nadwaga'],['g_aktywne','Aktywne'],['g_zabieg','Po zabiegach']]],
+ ['Główny składnik',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']]],
+ ['Sezonowość',[['x_sezon','Sezonowe']]],
+ ['Ograniczenia',[['bez_zboz','Bez zbóż']]],
+ ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+];
+const FILTERGROUPS=[
+ ['Cel żywieniowy',[['g_bialko','Wysokobiałkowe'],['g_lekko','Lekkostrawne'],['g_nisko','Niskotłuszczowe'],['g_brzuch','Wrażliwy żołądek'],['g_nadwaga','Kontrola wagi'],['g_aktywne','Dla aktywnych'],['g_zabieg','Po zabiegach']]],
+ ['Czas i trudność',[['quick','Do 30 minut'],['easy','Łatwe']]],
+ ['Główne źródło białka',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko']]],
+ ['Alergie i nietolerancje',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
+ ['Metoda przygotowania',[['met_gotowane','Gotowane'],['met_pieczone','Pieczone'],['met_duszone','Duszone'],['met_surowe','Surowe']]],
+ ['Przechowywanie',[['st_mroz','Do mrożenia'],['st_lodowka','Do lodówki'],['st_wynos','Na wynos'],['st_batch','Batch cooking']]],
+ ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
+ ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
+ ['Suplementacja',[['sup_wymaga','Wymaga suplementacji'],['sup_bez','Bez suplementacji']]],
+ ['Jakość',[['diet','Od dietetyka'],['verif','Zatwierdzone przez specjalistę']]]
+];
+const RISK=['czekolad','cebul','czosnek','winogron','rodzynk','ksylitol','awokado','makadami','alkohol'];
+
+let RECIPES=[
+ {id:1,name:'Pieczona wołowina z dynią',cat:'gotowane',badge:'diet',wash:'green',time:'40 min',diff:'Łatwy',kcal:'310 kcal',portion:'≈ 250 g',rating:4.9,desc:'Pełnowartościowy posiłek gotowany na bazie chudej wołowiny i pieczonej dyni — łagodny dla żołądka, bogaty w białko.',flags:['m_obiad','m_kolacja','f_pelno','a_dorosly','a_senior','s_male','s_srednie','s_duze','g_bialko','g_brzuch','i_wolowina','i_warzywa','bez_kurczak','bez_ryba','bez_jajko','bez_nabial','bez_zboz','bez_ryz','bez_gluten','met_gotowane','met_pieczone','st_lodowka','st_mroz','st_batch','tex_kawalki','h_skora','sup_wymaga','st_premium'],ing:[['Chuda wołowina','300 g'],['Dynia','150 g'],['Marchew','1 szt.'],['Olej lniany','1 łyżeczka'],['Natka pietruszki','garść']],steps:['Pokrój wołowinę w kostkę i gotuj na wolnym ogniu ok. 25 minut.','Dynię i marchew upiecz lub ugotuj do miękkości.','Połącz składniki, ostudź do temperatury pokojowej.','Skrop olejem lnianym i posyp natką tuż przed podaniem.'],good:['Psy dorosłe','Wrażliwy żołądek','Dieta bez zbóż'],bad:['Szczenięta poniżej 4 mies.'],warn:'Wprowadzaj nowe białko stopniowo, obserwując reakcję psa przez 2–3 dni.'},
+ {id:2,name:'Lekkostrawny indyk z ryżem',cat:'lekkostrawne',badge:'verif',wash:'parch',time:'30 min',diff:'Łatwy',kcal:'245 kcal',portion:'≈ 220 g',rating:4.8,desc:'Klasyka diety lekkostrawnej. Idealny po infekcji żołądkowej lub w okresie rekonwalescencji.',flags:['m_obiad','f_pelno','a_dorosly','a_senior','s_male','s_srednie','s_duze','g_lekko','g_nisko','g_brzuch','g_zabieg','g_nadwaga','i_indyk','i_ryz','i_warzywa','bez_kurczak','bez_wolowina','bez_ryba','bez_jajko','bez_nabial','bez_zboz','bez_gluten','met_gotowane','st_lodowka','st_mroz','tex_miekkie','h_jelita','sup_wymaga','st_budzet'],ing:[['Pierś z indyka','250 g'],['Ryż biały','80 g'],['Marchew gotowana','1 szt.'],['Woda','do gotowania']],steps:['Ugotuj indyka bez przypraw i soli.','Osobno ugotuj ryż na sypko.','Marchew rozgnieć widelcem.','Wymieszaj wszystko i podawaj letnie.'],good:['Rekonwalescencja','Wrażliwy układ pokarmowy','Seniory'],bad:['Psy z nadwagą — ogranicz porcję ryżu'],warn:'Posiłek przejściowy — nie stosuj jako jedynej diety dłużej niż kilka dni bez konsultacji.'},
+ {id:3,name:'Wątróbkowe smaczki treningowe',cat:'smaczki',badge:'comm',wash:'forest',time:'45 min',diff:'Średni',kcal:'42 kcal / szt.',portion:'1–2 szt.',rating:4.7,desc:'Aromatyczne, twarde kąski idealne na nagrody podczas szkolenia.',flags:['m_smaczek','f_dodatek','a_dorosly','s_male','s_srednie','s_duze','g_bialko','g_aktywne','i_jajko','poultry','bez_wolowina','bez_ryba','bez_nabial','bez_zboz','bez_ryz','bez_gluten','met_pieczone','st_lodowka','st_mroz','tex_kawalki','tex_chrupiace','sup_bez','st_budzet'],ing:[['Wątróbka drobiowa','200 g'],['Mąka z ciecierzycy','100 g'],['Jajko','1 szt.'],['Pietruszka','szczypta']],steps:['Zmiksuj wątróbkę z jajkiem na gładką masę.','Dodaj mąkę i wymieszaj na gęste ciasto.','Rozsmaruj cienko na blasze.','Piecz 30 min w 170°C, pokrój w kostkę po ostudzeniu.'],good:['Psy aktywne','Szkolenie','Nagradzanie'],bad:['Psy z nietolerancją drobiu'],warn:'Smaczki to dodatek — nie powinny przekraczać 10% dziennej dawki kalorii.'},
+ {id:4,name:'Miska BARF z jagnięciną',cat:'barf',badge:'diet',wash:'gold',time:'15 min',diff:'Łatwy',kcal:'380 kcal',portion:'≈ 300 g',rating:5.0,desc:'Surowa, zbilansowana porcja BARF z jagnięciną, podrobami i warzywami. Receptura opracowana przez dietetyka.',flags:['m_obiad','f_pelno','a_dorosly','s_male','s_srednie','s_duze','g_bialko','g_aktywne','i_warzywa','bez_kurczak','bez_ryba','bez_jajko','bez_nabial','bez_zboz','bez_ryz','bez_gluten','met_surowe','st_mroz','st_lodowka','tex_kawalki','h_skora','h_stawy','sup_wymaga','st_premium'],ing:[['Mięso jagnięce','200 g'],['Żołądki','60 g'],['Cukinia starta','40 g'],['Olej z łososia','1 łyżeczka'],['Skorupki jaj (mielone)','szczypta']],steps:['Zważ i rozdrobnij mięso oraz podroby.','Zetrzyj warzywa na drobnej tarce.','Połącz wszystkie składniki dokładnie.','Podawaj świeże lub porcjuj i mroź.'],good:['Psy aktywne','Dieta surowa','Dorosłe psy zdrowe'],bad:['Szczenięta','Psy z obniżoną odpornością'],warn:'Dieta surowa wymaga rygoru higieny i bilansowania wapń–fosfor. Skonsultuj proporcje z dietetykiem.'},
+ {id:5,name:'Owsianka dla seniora',cat:'seniory',badge:'verif',wash:'green',time:'20 min',diff:'Łatwy',kcal:'210 kcal',portion:'≈ 200 g',rating:4.6,desc:'Ciepły, miękki posiłek dla starszych psów — łatwy do pogryzienia i delikatny dla stawów.',flags:['m_sniadanie','f_pelno','a_senior','a_dorosly','s_male','s_srednie','s_duze','g_lekko','g_nisko','g_brzuch','i_warzywa','bez_kurczak','bez_wolowina','bez_ryba','bez_jajko','met_gotowane','st_lodowka','tex_miekkie','tex_kremowe','h_stawy','h_jelita','sup_bez','st_budzet'],ing:[['Płatki owsiane','50 g'],['Twaróg chudy','60 g'],['Gotowana marchew','1 szt.'],['Olej lniany','1 łyżeczka']],steps:['Ugotuj płatki na wodzie do miękkości.','Dodaj rozgnieconą marchew.','Wmieszaj twaróg po przestudzeniu.','Skrop olejem przed podaniem.'],good:['Seniory','Psy z problemami z uzębieniem'],bad:['Psy z nietolerancją laktozy'],warn:'Przy nietolerancji nabiału zastąp twaróg gotowanym jajkiem.'},
+ {id:6,name:'Batony energetyczne dla aktywnych',cat:'aktywne',badge:'diet',wash:'forest',time:'50 min',diff:'Średni',kcal:'95 kcal / szt.',portion:'1 szt.',rating:4.8,desc:'Skoncentrowana energia na długie wędrówki i intensywny trening.',flags:['m_smaczek','m_przekaska','f_dodatek','f_podroz','a_dorosly','s_srednie','s_duze','g_bialko','g_aktywne','i_wolowina','i_jajko','bez_kurczak','bez_ryba','bez_nabial','bez_gluten','met_pieczone','st_lodowka','st_wynos','tex_chrupiace','tex_kawalki','sup_bez','st_budzet'],ing:[['Wołowina suszona mielona','120 g'],['Masło orzechowe (bez ksylitolu)','2 łyżki'],['Płatki jaglane','60 g'],['Jajko','1 szt.']],steps:['Połącz wszystkie składniki na zwartą masę.','Uformuj batony.','Piecz 35 min w 160°C.','Ostudź i przechowuj w lodówce do 5 dni.'],good:['Psy sportowe','Długie aktywności','Psy pracujące'],bad:['Psy z nadwagą','Niska aktywność'],warn:'Sprawdź, czy masło orzechowe NIE zawiera ksylitolu — jest toksyczny dla psów.'},
+ {id:7,name:'Codzienna miska z kurczakiem',cat:'codzienne',badge:'comm',wash:'parch',time:'35 min',diff:'Łatwy',kcal:'290 kcal',portion:'≈ 250 g',rating:4.5,desc:'Prosty, zrównoważony posiłek na co dzień dla zdrowych psów dorosłych.',flags:['m_obiad','f_pelno','a_dorosly','s_male','s_srednie','s_duze','g_bialko','g_lekko','i_kurczak','i_ryz','i_warzywa','poultry','bez_wolowina','bez_ryba','bez_jajko','bez_nabial','bez_zboz','bez_gluten','met_gotowane','st_lodowka','st_mroz','tex_kawalki','h_jelita','sup_wymaga','st_budzet'],ing:[['Pierś z kurczaka','250 g'],['Ryż brązowy','70 g'],['Brokuł','garść'],['Olej rzepakowy','1 łyżeczka']],steps:['Ugotuj kurczaka i ryż osobno.','Brokuł ugotuj na parze.','Połącz, rozdrobnij brokuł.','Skrop olejem i wymieszaj.'],good:['Psy dorosłe','Codzienne karmienie'],bad:['Psy uczulone na kurczaka'],warn:'Zawiera kurczaka — niezalecane przy alergii na drób.'},
+ {id:8,name:'Mrożone gryzaki z arbuza',cat:'przekaski',badge:'comm',wash:'gold',time:'10 min + mroż.',diff:'Łatwy',kcal:'18 kcal / szt.',portion:'1–2 szt.',rating:4.4,desc:'Orzeźwiająca przekąska na upalne dni. Bez cukru, sama natura.',flags:['m_przekaska','m_smaczek','f_mroz','a_dorosly','a_szczeniak','a_senior','s_male','s_srednie','s_duze','g_nisko','g_nadwaga','x_sezon','i_warzywa','bez_kurczak','bez_wolowina','bez_ryba','bez_jajko','bez_zboz','bez_ryz','bez_gluten','met_surowe','st_mroz','tex_kremowe','tex_mokre','sup_bez','st_budzet'],ing:[['Arbuz bez pestek','150 g'],['Jogurt naturalny','60 g']],steps:['Zmiksuj arbuz z jogurtem.','Rozlej do foremek silikonowych.','Mroź minimum 3 godziny.','Podawaj jako chłodzącą przekąskę.'],good:['Upalne dni','Wszystkie psy dorosłe'],bad:['Psy z nietolerancją laktozy'],warn:'Usuń wszystkie pestki — w nadmiarze mogą podrażniać układ pokarmowy.'},
+ {id:9,name:'Delikatna papka dla szczeniaka',cat:'szczeniaki',badge:'verif',wash:'green',time:'25 min',diff:'Łatwy',kcal:'180 kcal',portion:'≈ 150 g',rating:4.7,desc:'Miękki, łatwostrawny posiłek dopasowany do potrzeb rosnącego szczeniaka.',flags:['m_obiad','m_sniadanie','f_pelno','a_szczeniak','s_male','s_srednie','s_duze','g_lekko','g_brzuch','i_indyk','i_warzywa','bez_kurczak','bez_wolowina','bez_ryba','bez_jajko','bez_nabial','bez_gluten','met_gotowane','st_lodowka','tex_miekkie','tex_kremowe','h_jelita','h_odpornosc','sup_wymaga','st_budzet'],ing:[['Mięso z indyka','150 g'],['Kasza jaglana','40 g'],['Marchew','1 szt.'],['Olej z łososia','kilka kropli']],steps:['Ugotuj indyka i kaszę do miękkości.','Marchew ugotuj i rozgnieć.','Zmiksuj składniki na gładką papkę.','Podawaj letnie, w mniejszych porcjach kilka razy dziennie.'],good:['Szczenięta','Psy w okresie wzrostu'],bad:['Psy dorosłe z nadwagą'],warn:'Szczenięta jedzą częściej i mniej — dawkę ustal z weterynarzem.'}
+];
+const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane'],comm:['b-comm','Przepis użytkownika']};
+
+const PAGE=6;
+let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
+  comments:{1:[{who:'Ola K.',text:'Mój labrador uwielbia tę miskę. Robię co tydzień.',when:'3 dni temu'}],2:[{who:'Piotr',text:'Pomogło po problemach żołądkowych. Dziękuję!',when:'wczoraj'}],4:[{who:'Magda',text:'Świetnie zbilansowane, widać efekty u psa.',when:'5 dni temu'}]},
+  dogs:[{name:'Mila',breed:'Border collie',age:'4 lata',weight:'17 kg',activity:'Wysoka aktywność',goal:'Pies aktywny',allergens:['Kurczak'],forbidden:['Zboża'],preferences:'Mięso, posiłki gotowane',conditions:'Brak',note:'Energiczna i czujna, uwielbia aportować. Najszczęśliwsza, gdy w misce jest coś gotowanego.',notes:[{text:'Po przejściu na gotowane posiłki ma wyraźnie więcej energii.',when:'tydzień temu'},{text:'Dobrze toleruje indyka — kurczak wywołuje swędzenie.',when:'3 dni temu'}]}]};
+
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2100);}
+
+/* ---- Supabase: połączenie, logowanie, dane na żywo ---- */
+const SB_URL='https://aprzeqqjtwtbaoqbdolv.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwcnplcXFqdHd0YmFvcWJkb2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzY1MjYsImV4cCI6MjA5NzQ1MjUyNn0.AxNIw_2qJf32ne8XslXFFMjV4dU9jLlFkOOxmUmD0QM';
+const _pf=(u,o={})=>{const h={};const hs=o.headers;if(hs){if(typeof hs.forEach==='function'){hs.forEach((v,k)=>{h[k]=v;});}else{Object.assign(h,hs);}}return fetch(u,Object.assign({},o,{headers:h}));};
+const sb=window.supabase?window.supabase.createClient(SB_URL,SB_KEY,{global:{fetch:_pf}}):null;
+const DIFFL={easy:'Łatwy',medium:'Średni',hard:'Trudny'};
+const WASHES=['green','parch','forest','gold'];
+function mapDbRecipe(r,ings,steps,tagKeys,i){
+  const badge=tagKeys.includes('q_diet')?'diet':(tagKeys.includes('q_verif')?'verif':'comm');
+  return {id:r.id,name:r.title,cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
+    time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
+    portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,desc:r.description||'',
+    flags:tagKeys,ing:ings.map(x=>[x.name,x.amount||'']),steps:steps.map(x=>x.body),good:[],bad:[],warn:'',status:r.status};
+}
+async function loadData(){
+  if(!sb)return;
+  const [{data:recs},{data:ings},{data:stps},{data:rtags},{data:favs}]=await Promise.all([
+    sb.from('recipes').select('*').eq('status','approved').order('rating_avg',{ascending:false}),
+    sb.from('recipe_ingredients').select('*').order('position'),
+    sb.from('recipe_steps').select('*').order('position'),
+    sb.from('recipe_tags').select('recipe_id,tags(key)'),
+    state.user?sb.from('favorites').select('recipe_id'):Promise.resolve({data:[]})
+  ]);
+  const grp=(arr,k)=>{const m={};(arr||[]).forEach(x=>{(m[x[k]]=m[x[k]]||[]).push(x);});return m;};
+  const ingM=grp(ings,'recipe_id'),stM=grp(stps,'recipe_id'),tgM={};
+  (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
+  RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
+  state.favs=new Set((favs||[]).map(f=>f.recipe_id));
+  if(state.user){await loadDogs();await loadMine();}
+}
+function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
+async function loadDogs(){
+  if(!state.user||!sb)return;
+  const [{data:ds},{data:js}]=await Promise.all([
+    sb.from('dogs').select('*').order('created_at'),
+    sb.from('dog_journal_entries').select('*').order('created_at')
+  ]);
+  const jb={};(js||[]).forEach(j=>{(jb[j.dog_id]=jb[j.dog_id]||[]).push(j);});
+  state.dogs=(ds||[]).map(d=>mapDog(d,jb[d.id]));
+}
+async function loadMine(){
+  if(!state.user||!sb){state.myRecipes=[];return;}
+  const {data:recs}=await sb.from('recipes').select('*').eq('author_id',state.user.id).order('created_at',{ascending:false});
+  const ids=(recs||[]).map(r=>r.id);
+  if(!ids.length){state.myRecipes=[];return;}
+  const [{data:ings},{data:stps},{data:rtags}]=await Promise.all([
+    sb.from('recipe_ingredients').select('*').in('recipe_id',ids).order('position'),
+    sb.from('recipe_steps').select('*').in('recipe_id',ids).order('position'),
+    sb.from('recipe_tags').select('recipe_id,tags(key)').in('recipe_id',ids)
+  ]);
+  const grp=(arr,k)=>{const m={};(arr||[]).forEach(x=>{(m[x[k]]=m[x[k]]||[]).push(x);});return m;};
+  const ingM=grp(ings,'recipe_id'),stM=grp(stps,'recipe_id'),tgM={};
+  (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
+  state.myRecipes=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
+}
+async function setSession(u){
+  state.user=u;
+  if(u){try{const {data}=await sb.from('profiles').select('*').eq('id',u.id).single();state.profile=data;}catch(e){}}
+  else state.profile=null;
+}
+async function afterLogin(){await setSession((await sb.auth.getSession()).data.session?.user||null);await loadData();$('login').classList.remove('show');render();}
+async function start(){
+  if(!sb){$('login').classList.add('show');return;}
+  const {data}=await sb.auth.getSession();
+  if(data.session){await afterLogin();}else{$('login').classList.add('show');}
+}
+async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value;if(!sb)return;const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return toast(error.message);toast('Zalogowano');afterLogin();}
+async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
+async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
+async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.tab='home';$('login').classList.add('show');render();}
+async function browseGuest(){await loadData();$('login').classList.remove('show');render();}
+function norm(s){return (s||'').toLowerCase().replace(/[ąàá]/g,'a').replace(/ć/g,'c').replace(/[ęèé]/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/[óòô]/g,'o').replace(/ś/g,'s').replace(/[źż]/g,'z');}
+function findRecipe(id){return RECIPES.find(x=>x.id===id)||state.myRecipes.find(x=>x.id===id);}
+function checkRisk(r){const hits=[];r.ing.forEach(i=>{const n=(i[0]||'').toLowerCase();RISK.forEach(w=>{if(n.includes(w)&&!hits.includes(i[0]))hits.push(i[0]);});});return hits;}
+function dogAvoid(dog){return [].concat(dog&&dog.allergens||[],dog&&dog.forbidden||[]).map(s=>(s||'').toLowerCase());}
+function recipeMatchesDog(r,dog){
+  if(!dog)return true;
+  for(const a of dogAvoid(dog)){
+    if(!a)continue;
+    for(const [term,flag] of AVOIDMAP){if(a.includes(term)&&!r.flags.includes(flag))return false;}
+    if(a.includes('kurcz')&&r.flags.includes('poultry'))return false;
+    if(r.ing.some(i=>(i[0]||'').toLowerCase().includes(a)))return false;
+  }
+  return true;
+}
+function dogProfileFlags(dog){
+  if(!dog)return [];
+  const f=[];
+  for(const a of dogAvoid(dog)){for(const [term,flag] of AVOIDMAP){if(a.includes(term)&&!f.includes(flag))f.push(flag);}}
+  const w=parseInt(dog.weight,10);
+  if(w){f.push(w<10?'s_male':(w<=25?'s_srednie':'s_duze'));}
+  if((dog.activity||'').toLowerCase().includes('wysok'))f.push('g_aktywne');
+  if((dog.goal||'').toLowerCase().includes('senior'))f.push('a_senior');
+  if((dog.goal||'').toLowerCase().includes('redukcj'))f.push('g_nadwaga');
+  return f;
+}
+function catMatch(r,c){return c==='all'||r.flags.includes(c)||r.cat===c;}
+const AVOIDMAP=[['kurcz','bez_kurczak'],['wolow','bez_wolowina'],['ryb','bez_ryba'],['jaj','bez_jajko'],['nabia','bez_nabial'],['mlek','bez_nabial'],['lakto','bez_nabial'],['zbo','bez_zboz'],['gluten','bez_gluten'],['ryż','bez_ryz'],['ryz','bez_ryz']];
+function passFilters(r){
+  for(const f of state.flags){
+    if(f==='diet'){if(r.badge!=='diet')return false;}
+    else if(f==='verif'){if(r.badge!=='verif')return false;}
+    else if(f==='comm'){if(r.badge!=='comm')return false;}
+    else if(f==='easy'){if(r.diff!=='Łatwy')return false;}
+    else if(f==='quick'){if(parseInt(r.time,10)>30)return false;}
+    else if(!r.flags.includes(f))return false;
+  }
+  return true;
+}
+
+function recipeCardHTML(r,full){
+  const [bc,bt]=BADGE[r.badge];
+  return `<div class="rcard ${full?'full':''}" onclick="openRecipe('${r.id}')">
+    <div class="thumb ${r.wash}"><button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
+    <h4>${r.name}</h4>
+    <div class="sub"><span>${r.time}</span><span class="dot">·</span><span>${r.kcal}</span><span class="dot">·</span><span>${star} ${r.rating}</span></div></div>`;
+}
+function dogCardHTML(d,i){
+  const meta=[];if(d.preferences)meta.push('Preferencje: '+d.preferences);if(d.conditions&&d.conditions!=='Brak')meta.push('Ograniczenia: '+d.conditions);
+  return `<div class="dogcard" style="margin-bottom:12px">${typeof i==='number'?`<button class="dogedit" onclick="openDogForm(${i})" aria-label="Edytuj">${ico('edit')}</button>`:''}<div class="ava">${d.name[0]}</div>
+    <div style="flex:1"><h4>${d.name}</h4>
+      <div class="tags"><em>${d.breed}</em><em>${d.age}</em><em>${d.weight}</em>${d.activity?`<em>${d.activity}</em>`:''}${d.goal?`<em>${d.goal}</em>`:''}${(d.allergens||[]).map(a=>`<em>\u26A0 ${a}</em>`).join('')}${(d.forbidden||[]).map(a=>`<em>\u2298 ${a}</em>`).join('')}</div>
+      ${meta.length?`<div class="dogmeta">${meta.join(' \u00B7 ')}</div>`:''}
+      ${d.note?`<div class="dognote">\u201E${d.note}\u201D</div>`:''}</div></div>`;
+}
+
+function renderHome(){
+  const dog=state.dogs[0];
+  const featured=RECIPES[0];
+  if(!featured)return '<div class="pad muted" style="padding-top:60px;text-align:center">Brak przepisów do wyświetlenia.</div>';
+  const diet=RECIPES.filter(r=>r.badge==='diet');
+  const popular=RECIPES.filter(r=>r.badge==='comm');
+  const matched=dog?RECIPES.filter(r=>recipeMatchesDog(r,dog)).slice(0,6):[];
+  const favList=RECIPES.filter(r=>state.favs.has(r.id));
+  const quick=[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_smaczek','Smaczki'],['a_szczeniak','Szczenięta'],['a_senior','Seniory'],['g_lekko','Lekkostrawne']];
+  return `
+  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society"></div>
+  <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+dog.name):'Witaj w Society'}</b></div>
+  <div class="pad"><div class="searchwrap">${ico('search')}<input id="homeSearch" placeholder="Szukaj przepisu lub składnika…" value="${state.q}" oninput="homeSearch(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
+  <button class="morebtn" style="margin-top:10px" onclick="goFilters()">${ico('filter')} Filtry i kategorie</button></div>
+  <div class="chips qcats">${quick.map(([c,l])=>`<button class="chip" onclick="goCat('${c}')">${l}</button>`).join('')}</div>
+  <div class="pad"><div class="hero">
+    <img src="${MONOG}" alt="" style="position:absolute;top:16px;right:16px;width:66px;opacity:.12;z-index:0;pointer-events:none">
+    <span class="eyebrow">Polecane dnia</span><h3>${featured.name}</h3><p>${featured.desc}</p>
+    <div class="meta"><span>${featured.time}</span><span>${featured.kcal}</span><span>${star} ${featured.rating}</span></div>
+    <div style="margin-top:18px"><button class="btn btn-gold" onclick="openRecipe(${featured.id})">Zobacz przepis</button></div>
+  </div></div>
+  ${favList.length?`<div class="section-h pad"><h2>Twoje ulubione</h2><a onclick="go('recipes')">Wszystkie</a></div><div class="rail">${favList.map(r=>recipeCardHTML(r)).join('')}</div>`:''}
+  ${dog?`<div class="section-h pad"><h2>Dla ${dog.name}</h2><a onclick="goMatched()">Wszystkie</a></div><div class="rail">${matched.map(r=>recipeCardHTML(r)).join('')}</div>`:''}
+  <div class="section-h pad"><h2>Od dietetyków</h2><a onclick="goDietitian()">Więcej</a></div>
+  <div class="rail">${diet.map(r=>recipeCardHTML(r)).join('')}</div>
+  <div class="section-h pad"><h2>Popularne w społeczności</h2><a onclick="goComm()">Wszystkie</a></div>
+  <div class="rail">${popular.map(r=>recipeCardHTML(r)).join('')}</div>
+  <div style="padding:30px 22px 8px"><div class="sprig"><span>${star} ${star} ${star}</span></div></div>
+  <div class="section-h pad"><h2>Najnowsze</h2></div>
+  <div class="list" style="padding-bottom:8px">${RECIPES.slice(4,8).map(r=>recipeCardHTML(r,true)).join('')}</div>
+  <div class="brandsign"><img src="${CREST}" alt=""><span>Troska godna rodowodu</span></div>`;
+}
+
+function renderRecipes(){
+  const dog=state.dogs[0];
+  const favList=RECIPES.filter(r=>state.favs.has(r.id));
+  let list=RECIPES.filter(r=>{
+    if(state.dogMatch && dog && !recipeMatchesDog(r,dog))return false;
+    if(!catMatch(r,state.cat))return false;
+    if(state.q){const cl=CATS.find(c=>c[0]===r.cat);const hay=norm(r.name+' '+r.ing.map(i=>i[0]).join(' ')+' '+r.desc+' '+r.good.join(' ')+' '+(cl?cl[1]:''));if(!hay.includes(norm(state.q)))return false;}
+    if(!passFilters(r))return false;
+    return true;
+  });
+  if(state.sort==='rating')list=list.slice().sort((a,b)=>b.rating-a.rating);
+  else if(state.sort==='fast')list=list.slice().sort((a,b)=>parseInt(a.time,10)-parseInt(b.time,10));
+  else if(state.sort==='new')list=list.slice().sort((a,b)=>b.id-a.id);
+  const n=state.flags.size;
+  const sig=state.cat+'|'+state.q+'|'+[...state.flags].sort().join(',')+'|'+state.sort+'|'+state.dogMatch;
+  if(state._sig!==sig){state._sig=sig;state.shown=PAGE;}
+  const vis=list.slice(0,state.shown);
+  const SORTS=[['rec','Polecane'],['rating','Najlepiej oceniane'],['fast','Najszybsze'],['new','Najnowsze']];
+  return `
+  <div class="brandbar" style="padding:16px 0 2px"><img class="crest" src="${CREST}" style="height:52px" alt=""></div>
+  <div class="pad" style="text-align:center;margin-bottom:8px"><span class="eyebrow">Biblioteka przepisów</span></div>
+  <div class="rsticky">
+    <div class="pad searchwrap">${ico('search')}<input id="search" placeholder="Szukaj nazwy lub składnika…" value="${state.q}" oninput="setQ(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
+    <div class="toolrow" style="margin-top:10px">
+      <select class="sortsel" onchange="setSort(this.value)">${SORTS.map(s=>`<option value="${s[0]}" ${state.sort===s[0]?'selected':''}>Sortuj: ${s[1]}</option>`).join('')}</select>
+      <button class="filterbtn ${n||state.showFilters?'on':''}" onclick="toggleFilters()">${ico('filter')} Filtry${n?` <span class="fcount">${n}</span>`:''}</button>
+    </div>
+    <div class="chips" style="margin-top:10px">${MEALCATS.map(([c,l])=>`<button class="chip ${state.cat===c?'active':''}" onclick="setCat('${c}')">${l}</button>`).join('')}<button class="chip ${state.showCats?'active':''}" onclick="toggleCats()">Więcej kategorii ▾</button></div>
+  </div>
+  ${state.showCats?`<div class="fpanel"><div class="fl" style="margin:2px 0 4px">Wszystkie kategorie</div>${groupPanel(CATGROUPS,'cat')}${state.cat!=='all'?`<div class="fclear" onclick="pickCat('all')">${ico('x')} Wyczyść kategorię</div>`:''}</div>`:''}
+  ${state.showFilters?`<div class="fpanel">
+    ${dog?`<div class="profrow"><button class="outbtn" onclick="applyProfile()">${ico('user')} Dopasuj do ${dog.name}</button><span class="muted" style="font-size:11px">Ustawia alergie i dane psa z profilu</span></div>`:''}
+    ${groupPanel(FILTERGROUPS,'filt')}
+    ${(n||state.q||state.cat!=='all'||state.dogMatch)?`<div class="fclear" onclick="clearFilters()">${ico('x')} Wyczyść wszystko</div>`:''}
+  </div>`:''}
+  ${state.dogMatch&&dog?`<div class="ctx">Dopasowane do ${dog.name}<button onclick="clearMatch()" aria-label="Wyłącz">${ico('x')}</button></div>`:''}
+  ${(state.cat!=='all'&&!MEALCATS.some(m=>m[0]===state.cat))?`<div class="ctx">Kategoria: ${catLabel(state.cat)}<button onclick="pickCat('all')" aria-label="Wyczyść">${ico('x')}</button></div>`:''}
+  ${(state.cat==='all'&&!state.q&&!state.flags.size&&!state.dogMatch&&favList.length)?`
+  <div class="section-h pad" style="margin:18px 0 12px"><h2 style="font-size:18px">Ulubione przepisy</h2><span style="font-size:12px;color:#8a9189">${favList.length}</span></div>
+  <div class="rail">${favList.map(r=>recipeCardHTML(r)).join('')}</div>
+  <div class="pad" style="margin-top:20px"><div class="sprig"><span>WSZYSTKIE PRZEPISY</span></div></div>`:''}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 2px">
+    <span class="muted">${list.length} ${list.length===1?'przepis':'przepisów'}</span>
+    <button class="outbtn" onclick="go('add')">${ico('plus')} Dodaj przepis</button></div>
+  <div class="list" style="padding-bottom:8px;margin-top:8px">
+    ${list.length?vis.map(r=>recipeCardHTML(r,true)).join(''):`<div style="text-align:center;color:#8a9189;padding:36px 14px;font-weight:300">Brak przepisów dla wybranych kryteriów.<br><button class="outbtn" style="margin-top:14px" onclick="clearFilters()">${ico('x')} Wyczyść wszystko</button></div>`}
+  </div>
+  ${list.length>state.shown?`<div class="pad" style="padding-bottom:30px"><button class="morebtn" onclick="showMore()">Pokaż więcej (${list.length-state.shown}) ${ico('chev')}</button></div>`:'<div style="height:24px"></div>'}`;
+}
+
+function renderAddRecipe(){
+  return `
+  <div class="addhead"><button class="back" onclick="go('recipes')" aria-label="Wróć">${ico('arrow')}</button><h2>Dodaj przepis</h2></div>
+  <div class="pad"><p class="muted" style="margin-bottom:18px">Twój przepis trafi do moderatora i pojawi się publicznie dopiero po akceptacji.</p>
+    <div class="field"><label>Nazwa przepisu</label><input id="r_name" placeholder="np. Domowa miska z indykiem"></div>
+    <div class="field"><label>Zdjęcie dania</label><button class="outbtn" type="button" onclick="toast('Dodawanie zdjęć — w pełnej wersji')">${ico('image')} Dodaj zdjęcie</button></div>
+    <div class="field"><label>Krótki opis</label><textarea id="r_desc" placeholder="Dla kogo i czym wyróżnia się ten posiłek"></textarea></div>
+    <div class="row2"><div class="field"><label>Kategoria</label><select id="r_cat">${MEALCATS.filter(c=>c[0]!=='all').map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div>
+      <div class="field"><label>Czas</label><input id="r_time" placeholder="np. 30 min"></div></div>
+    <div class="row2"><div class="field"><label>Główny składnik</label><select id="r_ingr">${[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']].map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div>
+      <div class="field"><label>Kcal (opcjonalnie)</label><input id="r_kcal" placeholder="np. 290" inputmode="numeric"></div></div>
+    <div class="field"><label>Bez (alergeny) — zaznacz, jeśli dotyczy</label><div class="chips" id="r_ff">${[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']].map(([k,l])=>`<button type="button" class="chip" data-k="${k}" onclick="this.classList.toggle('active')">${l}</button>`).join('')}</div></div>
+    <div class="field"><label>Składniki i ilości (każdy w nowej linii)</label><textarea id="r_ing" placeholder="Pierś z indyka - 250 g&#10;Ryż - 80 g"></textarea></div>
+    <div class="field"><label>Sposób przygotowania (każdy krok w nowej linii)</label><textarea id="r_steps" placeholder="Ugotuj indyka bez soli…&#10;Dodaj ugotowany ryż…"></textarea></div>
+    <div class="field"><label>Dla jakiego psa</label><input id="r_for" placeholder="np. Psy dorosłe, wrażliwy żołądek"></div>
+    <div class="field"><label>Ostrzeżenia / uwagi</label><input id="r_warn" placeholder="np. wprowadzaj stopniowo"></div>
+    <div class="checkrow" id="r_consent" onclick="this.classList.toggle('on')"><span class="box">${ico('check')}</span><span>Wyrażam zgodę na publikację przepisu po weryfikacji.</span></div>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:30px" onclick="saveRecipe()">Wyślij do akceptacji</button>
+  </div>`;
+}
+async function saveRecipe(){
+  const v=id=>($(id)?$(id).value.trim():'');
+  if(!state.user){toast('Zaloguj się, aby dodać przepis');return;}
+  if(!v('r_name')){toast('Podaj nazwę przepisu');return;}
+  if(!$('r_consent').classList.contains('on')){toast('Zaznacz zgodę na publikację');return;}
+  const meal=v('r_cat')||'m_obiad', ingr=v('r_ingr')||'i_kurczak';
+  const ing=v('r_ing').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(/\s[-\u2013]\s/);return [p[0]||l,p[1]||''];});
+  const steps=v('r_steps').split('\n').map(s=>s.trim()).filter(Boolean);
+  const ff=[...document.querySelectorAll('#r_ff .chip.active')].map(b=>b.dataset.k);
+  try{
+    const {data:rec,error}=await sb.from('recipes').insert({author_id:state.user.id,title:v('r_name'),description:v('r_desc')||null,difficulty:'easy',time_min:parseInt(v('r_time'))||null,kcal:parseInt(v('r_kcal'))||null}).select().single();
+    if(error){toast('Błąd: '+error.message);return;}
+    if(ing.length)await sb.from('recipe_ingredients').insert(ing.map((x,i)=>({recipe_id:rec.id,position:i,name:x[0],amount:x[1]})));
+    if(steps.length)await sb.from('recipe_steps').insert(steps.map((b,i)=>({recipe_id:rec.id,position:i,body:b})));
+    const keys=[meal,ingr,...ff];
+    const {data:tg}=await sb.from('tags').select('id').in('key',keys);
+    if(tg&&tg.length)await sb.from('recipe_tags').insert(tg.map(t=>({recipe_id:rec.id,tag_id:t.id})));
+    const {error:se}=await sb.rpc('submit_recipe',{p_recipe:rec.id});
+    await loadMine();
+    go('profile');
+    toast(se?('Zapisano szkic. '+se.message):'Wysłano do akceptacji ✓');
+  }catch(e){toast('Błąd zapisu: '+(e.message||e));}
+}
+
+function renderPlanner(){
+  const week=state.plan;
+  const shop=[['Białko','Indyk, kurczak, wołowina, jagnięcina'],['Węglowodany','Ryż biały, ryż brązowy, płatki owsiane'],['Warzywa','Marchew, dynia, brokuł'],['Dodatki','Olej lniany, twaróg, olej z łososia']];
+  const rows=week.map(([d,id])=>{
+    if(id){const r=findRecipe(id);if(r)return `<div class="day"><div class="daytag">${d}</div><div class="dayslot" onclick="openRecipe('${id}')"><div><h5>${r.name}</h5><div class="m">${r.time} · ${r.kcal} · ${r.portion}</div></div><button class="dayrm" onclick="event.stopPropagation();clearPlanDay('${d}')" aria-label="Usuń">${ico('x')}</button></div></div>`;}
+    return `<div class="day"><div class="daytag">${d}</div><div class="dayslot empty" onclick="goSearch()">${ico('plus')}Dodaj posiłek</div></div>`;
+  }).join('');
+  return `
+  <div class="brandbar" style="padding:18px 0 4px"><img class="crest" src="${CREST}" style="height:60px" alt=""></div>
+  <div class="pad" style="text-align:center;margin-bottom:8px"><span class="eyebrow">Tydzień psa</span><b class="serif" style="display:block;font-size:24px;font-weight:500;margin-top:6px">Planer posiłków</b></div>
+  <div class="pad" style="margin-bottom:18px"><p class="muted" style="text-align:center">Ułóż posiłki na cały tydzień, a listę zakupów aplikacja przygotuje sama.</p></div>
+  ${rows}
+  <div style="padding:24px 22px 8px"><div class="sprig"><span>LISTA ZAKUPÓW</span></div></div>
+  <div class="pad" style="padding-bottom:30px">
+    ${shop.map(s=>`<div class="shop" onclick="this.classList.toggle('done')"><span class="ck">${ico('check')}</span><div><h5>${s[0]}</h5><p>${s[1]}</p></div></div>`).join('')}
+    ${state.customShop.map(s=>`<div class="shop" onclick="this.classList.toggle('done')"><span class="ck">${ico('check')}</span><div><h5>${s}</h5><p>Dodane ręcznie</p></div></div>`).join('')}
+    <div class="shopadd"><input id="shopInput" placeholder="Dodaj własny produkt…" onkeydown="if(event.key==='Enter')addShop()"><button onclick="addShop()" aria-label="Dodaj">${ico('plus')}</button></div>
+    <button class="outbtn" style="margin-top:16px" onclick="toast('Lista przygotowana do eksportu')">${ico('send')} Eksportuj listę</button>
+    <p class="disclaim" style="color:#8a9189">Lista powstaje automatycznie ze składników zaplanowanych posiłków. Możesz dopisać własne produkty.</p>
+  </div>`;
+}
+function addShop(){const i=$('shopInput');if(!i||!i.value.trim())return;state.customShop.push(i.value.trim());render();toast('Dodano produkt');}
+const DAYNAMES={Pon:'poniedziałek',Wt:'wtorek','Śr':'środę',Czw:'czwartek',Pt:'piątek',Sob:'sobotę',Niedz:'niedzielę'};
+function addToPlan(id){
+  const slot=state.plan.find(p=>p[1]===null);
+  if(!slot){toast('Plan na ten tydzień jest pełny');return;}
+  slot[1]=id;
+  if(state.tab==='planner')render();
+  toast('Dodano do planera na '+(DAYNAMES[slot[0]]||slot[0]));
+}
+function clearPlanDay(d){const p=state.plan.find(x=>x[0]===d);if(p)p[1]=null;render();toast('Usunięto z planera');}
+
+function renderCommunity(){
+  const posts=[['Anna & Reksio','2 godz. temu','forest','Reksio oszalał na punkcie smaczków wątróbkowych. Zrobiłam od razu podwójną porcję.','24','6'],
+    ['Marek & Luna','wczoraj','green','Pierwszy raz BARF według przepisu od dietetyka — Luna ma więcej energii niż kiedykolwiek.','41','12'],
+    ['Kasia & Borys','2 dni temu','parch','Owsianka dla seniora to strzał w dziesiątkę dla mojego 11-latka. Dziękuję!','58','9']];
+  return `
+  <div class="brandbar" style="padding:18px 0 4px"><img class="crest" src="${CREST}" style="height:60px" alt=""></div>
+  <div class="pad" style="text-align:center;margin-bottom:18px"><span class="eyebrow">Stół wspólny</span><b class="serif" style="display:block;font-size:24px;font-weight:500;margin-top:6px">Społeczność</b></div>
+  <div class="pad" style="padding-bottom:30px">
+    ${posts.map(([who,when,wash,txt,likes,com])=>`<div class="comm-post"><div class="ph"><div class="av">${who[0]}</div><div><b>${who}</b><small>${when}</small></div></div>
+      <div class="pic thumb ${wash}"></div>
+      <p>${txt}</p><div class="react"><span>${ico('heart')} ${likes}</span><span>${ico('chat')} ${com}</span><span>Udostępnij</span></div></div>`).join('')}
+    <div class="sprig" style="margin:18px auto"><span>MODEROWANE Z TROSKĄ</span></div>
+    <p class="muted" style="text-align:center">Każdy przepis i zdjęcie przechodzi weryfikację, zanim trafi do społeczności.</p>
+  </div>`;
+}
+
+function renderProfile(){
+  const favs=RECIPES.filter(r=>state.favs.has(r.id));
+  return `
+  <div class="profhead"><img class="crest" src="${CREST}" alt="The Grey Henry Society"><h2>Twój profil</h2><p>Członek Society</p></div>
+  <div class="pad" style="padding-top:22px">
+    <div class="section-h" style="margin-top:4px"><h2 style="font-size:18px">Profile psów</h2><a onclick="openDogForm()">+ Dodaj psa</a></div>
+    ${state.dogs.map((d,i)=>dogCardHTML(d,i)).join('')}
+    <div id="dogForm"></div>
+
+    ${state.dogs.length?(()=>{const d=state.dogs[0];const ns=d.notes||[];return `
+    <div class="section-h jhead" onclick="toggleJournal()" style="cursor:pointer"><h2 style="font-size:18px">Dziennik · ${d.name}</h2><span class="jtoggle ${state.journalOpen?'open':''}">${ns.length} ${ico('chev')}</span></div>
+    ${state.journalOpen?`<p class="muted" style="margin:-6px 0 12px">Zapisuj obserwacje — reakcje na jedzenie, samopoczucie, postępy.</p>
+    ${ns.length?ns.map(x=>`<div class="jentry"><span class="dot"></span><div><div class="jt">${x.text}</div><small>${x.when}</small></div></div>`).join(''):'<p class="muted" style="padding:2px 0 8px">Brak notatek. Dodaj pierwszą obserwację o swoim psie.</p>'}
+    <div class="jbox"><input id="jInput" placeholder="Dodaj obserwację o ${d.name}…" onkeydown="if(event.key==='Enter')addDogNote(0)"><button onclick="addDogNote(0)" aria-label="Dodaj">${ico('send')}</button></div>`:`<p class="muted" style="margin:-6px 0 6px">${ns.length?('Ostatnio: '+ns[ns.length-1].text):'Brak notatek — dotknij, aby dodać obserwację.'}</p>`}`;})():''}
+
+    <div class="section-h"><h2 style="font-size:18px">Moje przepisy</h2><a onclick="go('add')">+ Dodaj</a></div>
+    ${state.myRecipes.length?state.myRecipes.map(r=>`<div class="dogcard" style="margin-bottom:12px;cursor:pointer" onclick="openRecipe('${r.id}')"><div class="ava" style="border-radius:14px">${ico('book')}</div><div style="flex:1"><h4 style="font-size:16px">${r.name}</h4><div style="margin-top:7px"><span class="status-pill">${({pending:'Oczekuje na akceptację',approved:'Zatwierdzony',rejected:'Odrzucony',draft:'Szkic'})[r.status]||'Oczekuje na akceptację'}</span></div></div><span style="color:var(--gold)">${ico('chev')}</span></div>`).join('')
+      :'<p class="muted" style="padding:2px 0 12px">Nie masz jeszcze własnych przepisów. <a style="color:var(--gold);cursor:pointer" onclick="go(\'add\')">Dodaj pierwszy</a>.</p>'}
+
+    <div class="section-h"><h2 style="font-size:18px">Ulubione</h2><span style="font-size:12px;color:#8a9189">${favs.length}</span></div>
+    ${favs.length?`<div class="rail" style="padding-left:0;padding-right:0">${favs.map(r=>recipeCardHTML(r)).join('')}</div>`:'<p class="muted" style="padding:6px 0 14px">Brak ulubionych. Dotknij serca na karcie przepisu, aby je tu zebrać.</p>'}
+
+    <div class="section-h"><h2 style="font-size:18px">Ustawienia</h2></div>
+    <div style="padding-bottom:30px">
+      ${[['flag','Tryb alergii'],['bell','Powiadomienia'],['book','Baza wiedzy'],['help','Pomoc i wsparcie'],['info','O Society']].map(([i,t])=>`<div class="menu-item" onclick="toast('${t} — wkrótce')"><span class="ic">${ico(i)}</span><span class="lbl">${t}</span><span class="ar">${ico('chev')}</span></div>`).join('')}
+      ${state.user?`<div class="menu-item" onclick="doLogout()"><span class="ic">${ico('x')}</span><span class="lbl">Wyloguj</span><span class="ar">${ico('chev')}</span></div>`:''}
+    </div>
+    <div class="brandsign"><img src="${CREST}" alt=""><span>Troska godna rodowodu</span></div>
+  </div>`;
+}
+function dogFormHTML(d,editing){
+  d=d||{};
+  const acts=['Niska aktywność','Umiarkowana aktywność','Wysoka aktywność'];
+  const goals=['Utrzymanie wagi','Redukcja wagi','Pies aktywny','Wsparcie seniora'];
+  const opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+  const at=v=>v?String(v).replace(/"/g,'&quot;'):'';
+  const tx=v=>v?String(v).replace(/</g,'&lt;'):'';
+  return `<div style="background:rgba(244,238,225,.05);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><b class="serif" style="font-size:17px;font-weight:500">${editing?'Edytuj profil psa':'Nowy profil psa'}</b>${editing?`<button class="linkdel" onclick="deleteDog(${state.editingDog})">${ico('x')} Usuń psa</button>`:''}</div>
+    <div class="field"><label>Imię psa</label><input id="d_name" value="${at(d.name)}" placeholder="np. Henry"></div>
+    <div class="row2"><div class="field"><label>Rasa lub typ</label><input id="d_breed" value="${at(d.breed)}" placeholder="np. Chart"></div><div class="field"><label>Wiek</label><input id="d_age" value="${at(d.age)}" placeholder="np. 3 lata"></div></div>
+    <div class="row2"><div class="field"><label>Waga</label><input id="d_weight" value="${at(d.weight)}" placeholder="np. 20 kg"></div><div class="field"><label>Poziom aktywności</label><select id="d_act">${opt(acts,d.activity)}</select></div></div>
+    <div class="field"><label>Cel żywieniowy</label><select id="d_goal">${opt(goals,d.goal)}</select></div>
+    <div class="field"><label>Alergie</label><input id="d_all" value="${at((d.allergens||[]).join(', '))}" placeholder="np. Kurczak"></div>
+    <div class="field"><label>Produkty zakazane / źle tolerowane</label><input id="d_forb" value="${at((d.forbidden||[]).join(', '))}" placeholder="np. Zboża, nabiał"></div>
+    <div class="field"><label>Preferencje żywieniowe</label><input id="d_pref" value="${at(d.preferences)}" placeholder="np. lubi mięso, posiłki gotowane"></div>
+    <div class="field"><label>Choroby / ograniczenia żywieniowe</label><input id="d_cond" value="${at(d.conditions&&d.conditions!=='Brak'?d.conditions:'')}" placeholder="np. wrażliwa trzustka"></div>
+    <div class="field"><label>O psie — charakter, co lubi</label><textarea id="d_note" placeholder="np. Energiczny, uwielbia aportować">${tx(d.note)}</textarea></div>
+    <button class="btn btn-gold" style="width:100%" onclick="saveDog()">${editing?'Zapisz zmiany':'Zapisz profil psa'}</button>
+  </div>`;
+}
+function openDogForm(i){
+  const f=$('dogForm');const editing=(typeof i==='number');
+  if(!editing && f.dataset.mode==='add'){f.innerHTML='';f.dataset.mode='';state.editingDog=null;return;}
+  state.editingDog=editing?i:null;
+  f.dataset.mode=editing?'edit':'add';
+  f.innerHTML=dogFormHTML(editing?state.dogs[i]:null,editing);
+  f.scrollIntoView({behavior:'smooth',block:'center'});
+}
+async function saveDog(){
+  if(!state.user){toast('Zaloguj się, aby zapisać profil psa');return;}
+  const g=id=>($(id)?$(id).value.trim():'');
+  const split=v=>v?v.split(',').map(s=>s.trim()).filter(Boolean):[];
+  const row={owner_id:state.user.id,name:g('d_name')||'Nowy pies',breed:g('d_breed')||null,age_text:g('d_age')||null,weight_kg:parseFloat((g('d_weight')||'').replace(',','.'))||null,activity:$('d_act').value,goal:$('d_goal').value,allergens:split(g('d_all')),forbidden:split(g('d_forb')),preferences:g('d_pref')||null,conditions:g('d_cond')||null,note:g('d_note')||null};
+  try{
+    const cur=(state.editingDog!=null)?state.dogs[state.editingDog]:null;
+    if(cur&&cur.id){await sb.from('dogs').update(row).eq('id',cur.id);toast('Zapisano zmiany');}
+    else{await sb.from('dogs').insert(row);toast('Dodano profil: '+row.name);}
+    state.editingDog=null;await loadDogs();render();
+  }catch(e){toast('Błąd zapisu: '+(e.message||e));}
+}
+async function deleteDog(i){
+  const d=state.dogs[i];
+  if(!state.user||!d||!d.id){state.dogs.splice(i,1);state.editingDog=null;render();toast('Usunięto profil psa');return;}
+  try{await sb.from('dogs').delete().eq('id',d.id);}catch(e){}
+  state.editingDog=null;await loadDogs();render();toast('Usunięto profil psa');
+}
+function toggleJournal(){state.journalOpen=!state.journalOpen;render();}
+async function addDogNote(i){
+  const inp=$('jInput');if(!inp||!inp.value.trim())return;
+  const text=inp.value.trim();const d=state.dogs[i];
+  if(!state.user||!d||!d.id){toast('Zaloguj się, aby zapisać notatkę');return;}
+  try{await sb.from('dog_journal_entries').insert({dog_id:d.id,body:text});}catch(e){}
+  state.journalOpen=true;await loadDogs();render();toast('Dodano notatkę o psie');
+}
+function goMatched(){state.tab='recipes';setProfileFilters();state.showFilters=false;state.showCats=false;render();}
+function goDietitian(){state.tab='recipes';state.cat='all';state.q='';state.dogMatch=false;state.flags=new Set(['diet']);state.showFilters=false;render();}
+function goComm(){state.tab='recipes';state.cat='all';state.q='';state.dogMatch=false;state.flags=new Set(['comm']);state.showFilters=false;render();}
+function clearMatch(){state.dogMatch=false;state.flags.clear();render();}
+
+const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile};
+let lastTab=null;
+function render(){
+  const sc=$('screen');
+  const keep=(state.tab===lastTab);
+  const y=sc?sc.scrollTop:0;
+  sc.innerHTML=VIEWS[state.tab]();
+  renderNav();
+  sc.style.scrollBehavior='auto';
+  sc.scrollTop=keep?y:0;
+  sc.style.scrollBehavior='';
+  lastTab=state.tab;
+}
+function go(t){state.tab=t;render();}
+function goCat(c){state.tab='recipes';state.cat=c;state.q='';render();}
+function goSearch(){state.tab='recipes';render();const s=$('search');if(s)s.focus();}
+function homeSearch(v){state.q=v;state.tab='recipes';render();const s=$('search');if(s){s.focus();s.setSelectionRange(v.length,v.length);}}
+function goFilters(){state.tab='recipes';state.showFilters=true;render();}
+function setCat(c){state.cat=c;render();}
+function setSort(v){state.sort=v;render();}
+function showMore(){state.shown+=PAGE;render();}
+function toggleFilters(){state.showFilters=!state.showFilters;state.showCats=false;render();}
+function toggleCats(){state.showCats=!state.showCats;state.showFilters=false;render();}
+function toggleGroup(g){state.openGroups.has(g)?state.openGroups.delete(g):state.openGroups.add(g);render();}
+function pickCat(c){state.cat=c;state.showCats=false;render();}
+function catLabel(c){for(const[g,items]of CATGROUPS){for(const[k,l]of items){if(k===c)return l;}}const m=MEALCATS.find(x=>x[0]===c);return m?m[1]:c;}
+function groupPanel(groups,kind){
+  return groups.map(([g,items])=>{
+    const open=state.openGroups.has(g);
+    const chips=items.map(([k,l])=>{const active=kind==='cat'?state.cat===k:state.flags.has(k);const fn=kind==='cat'?`pickCat('${k}')`:`toggleFlag('${k}')`;return `<button class="chip ${active?'active':''}" onclick="${fn}">${l}</button>`;}).join('');
+    return `<div class="fgroup"><div class="gtoggle ${open?'open':''}" onclick="toggleGroup('${g}')">${g} ${ico('chev')}</div>${open?`<div class="fchips" style="margin-top:10px">${chips}</div>`:''}</div>`;
+  }).join('');
+}
+function setProfileFilters(){const d=state.dogs[0];if(!d)return;state.flags=new Set(dogProfileFlags(d));state.dogMatch=true;state.cat='all';state.q='';}
+function applyProfile(){setProfileFilters();render();toast(state.dogs[0]?('Dopasowano do '+state.dogs[0].name):'');}
+function clearFilters(){state.flags.clear();state.q='';state.cat='all';state.sort='rec';state.dogMatch=false;render();}
+function setQ(v){state.q=v;render();const s=$('search');if(s){s.focus();s.setSelectionRange(v.length,v.length);}}
+function toggleFlag(f){state.flags.has(f)?state.flags.delete(f):state.flags.add(f);render();}
+function renderNav(){
+  const ak=state.tab==='add'?'recipes':state.tab;
+  const items=[['home','home','Start'],['recipes','book','Przepisy'],['planner','calendar','Planer'],['community','users','Społeczność'],['profile','user','Profil']];
+  $('nav').innerHTML=items.map(([k,i,l])=>`<button class="${ak===k?'active':''}" onclick="go('${k}')"><span class="dot"></span>${ico(i)}<span>${l}</span></button>`).join('');
+}
+
+function openRecipe(id){
+  const r=findRecipe(id);if(!r)return;const fav=state.favs.has(id);
+  const [bc,bt]=BADGE[r.badge];
+  const risky=checkRisk(r);
+  const cms=state.comments[id]||[];
+  $('detailScr').innerHTML=`
+    <div class="dhead thumb ${r.wash}" style="border:none;border-radius:0">
+      <div class="dscrim"></div>
+      <img src="${r.wash==='gold'||r.wash==='parch'?MONOG:MONO}" alt="" style="position:absolute;top:64px;right:20px;width:104px;opacity:.13;z-index:1;pointer-events:none">
+      <div class="circ-btn back" onclick="closeRecipe()" aria-label="Wróć">${ico('arrow')}</div>
+      <div class="circ-btn fav ${fav?'on':''}" id="favBtn" onclick="toggleFav('${id}')" aria-label="Ulubione">${ico('heart')}</div>
+      <div class="dtitle"><span class="badge ${bc}">${bt}</span><div class="eyebrow">${CATS.find(c=>c[0]===r.cat)?CATS.find(c=>c[0]===r.cat)[1]:'Przepis'}</div><h1>${r.name}</h1></div>
+    </div>
+    <div class="dbody">
+      ${r.status==='pending'?`<div style="text-align:center;margin-bottom:16px"><span class="status-pill">Oczekuje na akceptację</span></div>`:''}
+      <div class="metric-row">
+        <div class="metric"><b>${r.time.split(' ')[0]}</b><span>${/min/.test(r.time)?'minut':'czas'}</span></div>
+        <div class="metric"><b>${r.diff}</b><span>Trudność</span></div>
+        <div class="metric"><b>${r.kcal.split(' ')[0]}</b><span>kcal</span></div>
+        <div class="metric"><b>${star}${r.rating}</b><span>Ocena</span></div>
+      </div>
+      <p class="lead">${r.desc}</p>
+      <h3>Składniki <span style="font-size:12px;color:#8a9189;font-family:var(--sans)">· ${r.portion}</span></h3>
+      ${r.ing.map(i=>`<div class="ing"><span>${i[0]}</span><span>${i[1]}</span></div>`).join('')}
+      <h3>Przygotowanie</h3>
+      ${r.steps.map((s,n)=>`<div class="step"><div class="n">${n+1}</div><p>${s}</p></div>`).join('')}
+      ${(r.good&&r.good.length)||(r.bad&&r.bad.length)?`<h3>Dla jakich psów</h3>
+      <div class="tagline">${(r.good||[]).map(g=>`<span class="fit ok">${ico('check')} ${g}</span>`).join('')}</div>
+      <div class="tagline" style="margin-top:8px">${(r.bad||[]).map(b=>`<span class="fit no">${ico('x')} ${b}</span>`).join('')}</div>`:''}
+      ${r.warn?`<div class="warn"><span class="i">${ico('warn')}</span><p>${r.warn}</p></div>`:''}
+      ${risky.length?`<div class="warn danger"><span class="i">${ico('warn')}</span><p>Automatyczne ostrzeżenie: wykryto składnik wymagający ostrożności (${risky.join(', ')}). Sprawdź, czy jest bezpieczny dla Twojego psa.</p></div>`:''}
+      <button class="btn btn-gold" style="width:100%;margin-top:22px" onclick="addToPlan('${id}')">Dodaj do planera</button>
+      <h3>Komentarze</h3>
+      ${cms.length?cms.map(c=>`<div class="comment"><div class="av">${c.who[0]}</div><div><b>${c.who}</b><small>${c.when}</small><p>${c.text}</p></div></div>`).join(''):'<p class="muted" style="color:#8a9189">Brak komentarzy. Bądź pierwszy.</p>'}
+      <div class="cbox"><input id="cInput" placeholder="Napisz komentarz…" onkeydown="if(event.key==='Enter')addComment('${id}')"><button onclick="addComment('${id}')" aria-label="Wyślij">${ico('send')}</button></div>
+      <p class="disclaim">Wartości odżywcze i porcje są orientacyjne i nie zastępują konsultacji z lekarzem weterynarii ani dietetykiem zwierzęcym.</p>
+    </div>`;
+  $('detail').classList.add('open');
+}
+function closeRecipe(){$('detail').classList.remove('open');}
+async function toggleFav(id){
+  if(!state.user){toast('Zaloguj się, aby zapisywać ulubione');return;}
+  const had=state.favs.has(id);
+  had?state.favs.delete(id):state.favs.add(id);
+  const b=$('favBtn');if(b)b.classList.toggle('on',state.favs.has(id));
+  render();
+  toast(had?'Usunięto z ulubionych':'Dodano do ulubionych');
+  try{if(had){await sb.from('favorites').delete().eq('recipe_id',id);}else{await sb.from('favorites').insert({user_id:state.user.id,recipe_id:id});}}catch(e){}
+}
+function addComment(id){
+  const inp=$('cInput');if(!inp||!inp.value.trim())return;
+  (state.comments[id]=state.comments[id]||[]).push({who:'Ty',text:inp.value.trim(),when:'teraz'});
+  openRecipe(id);toast('Dodano komentarz');
+}
+
+setTimeout(()=>{$('splash').classList.add('hide');start();},2100);
+</script>
+</body>
+</html>
