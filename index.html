@@ -593,7 +593,7 @@ async function loadData(){
   (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
   RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
   state.favs=new Set((favs||[]).map(f=>f.recipe_id));
-  if(state.user){await loadDogs();await loadMine();}
+  if(state.user){await loadDogs();await loadMine();await loadPending();}
 }
 function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
 async function loadDogs(){
@@ -619,6 +619,24 @@ async function loadMine(){
   const ingM=grp(ings,'recipe_id'),stM=grp(stps,'recipe_id'),tgM={};
   (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
   state.myRecipes=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
+}
+function isStaff(){return ['dietitian','moderator','admin'].includes(state.profile&&state.profile.role);}
+async function loadPending(){
+  if(!isStaff()||!sb){state.pending=[];return;}
+  const {data}=await sb.from('recipes').select('id,title,created_at').eq('status','pending').order('created_at');
+  state.pending=(data||[]).map(r=>({id:r.id,name:r.title}));
+}
+async function approveRecipe(id){
+  const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:true});
+  if(error){toast('Błąd: '+error.message);return;}
+  toast('Zatwierdzono — przepis w bibliotece');
+  await loadData();render();
+}
+async function rejectRecipe(id){
+  const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:false});
+  if(error){toast('Błąd: '+error.message);return;}
+  toast('Przepis odrzucony');
+  await loadData();render();
 }
 async function setSession(u){
   state.user=u;
@@ -880,6 +898,11 @@ function renderProfile(){
     ${state.journalOpen?`<p class="muted" style="margin:-6px 0 12px">Zapisuj obserwacje — reakcje na jedzenie, samopoczucie, postępy.</p>
     ${ns.length?ns.map(x=>`<div class="jentry"><span class="dot"></span><div><div class="jt">${x.text}</div><small>${x.when}</small></div></div>`).join(''):'<p class="muted" style="padding:2px 0 8px">Brak notatek. Dodaj pierwszą obserwację o swoim psie.</p>'}
     <div class="jbox"><input id="jInput" placeholder="Dodaj obserwację o ${d.name}…" onkeydown="if(event.key==='Enter')addDogNote(0)"><button onclick="addDogNote(0)" aria-label="Dodaj">${ico('send')}</button></div>`:`<p class="muted" style="margin:-6px 0 6px">${ns.length?('Ostatnio: '+ns[ns.length-1].text):'Brak notatek — dotknij, aby dodać obserwację.'}</p>`}`;})():''}
+
+    ${isStaff()?`
+    <div class="section-h"><h2 style="font-size:18px">Moderacja</h2><span style="font-size:12px;color:#8a9189">${(state.pending||[]).length} oczekuje</span></div>
+    ${(state.pending&&state.pending.length)?state.pending.map(r=>`<div class="dogcard" style="margin-bottom:12px;align-items:center"><div class="ava" style="border-radius:14px">${ico('book')}</div><div style="flex:1"><h4 style="font-size:15px">${r.name}</h4><div style="margin-top:6px"><span class="status-pill">Oczekuje</span></div></div><div style="display:flex;gap:8px;flex:0 0 auto"><button class="btn btn-gold" style="padding:9px 13px;margin:0;font-size:13px" onclick="approveRecipe('${r.id}')">Zatwierdź</button><button class="outbtn" style="padding:9px 13px;font-size:13px" onclick="rejectRecipe('${r.id}')">Odrzuć</button></div></div>`).join(''):'<p class="muted" style="padding:2px 0 12px">Brak przepisów oczekujących na akceptację.</p>'}
+    `:''}
 
     <div class="section-h"><h2 style="font-size:18px">Moje przepisy</h2><a onclick="go('add')">+ Dodaj</a></div>
     ${state.myRecipes.length?state.myRecipes.map(r=>`<div class="dogcard" style="margin-bottom:12px;cursor:pointer" onclick="openRecipe('${r.id}')"><div class="ava" style="border-radius:14px">${ico('book')}</div><div style="flex:1"><h4 style="font-size:16px">${r.name}</h4><div style="margin-top:7px"><span class="status-pill">${({pending:'Oczekuje na akceptację',approved:'Zatwierdzony',rejected:'Odrzucony',draft:'Szkic'})[r.status]||'Oczekuje na akceptację'}</span></div></div><span style="color:var(--gold)">${ico('chev')}</span></div>`).join('')
