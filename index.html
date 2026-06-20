@@ -476,6 +476,7 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
       <button class="btn" onclick="doLogin()">Zaloguj</button>
       <button class="btn ghost" onclick="doRegister()">Załóż konto</button>
       <button class="btn ghost" onclick="doGoogle()">Zaloguj przez Google</button>
+      <button class="skip" onclick="doForgot()">Nie pamiętasz hasła?</button>
       <button class="skip" onclick="browseGuest()">Przeglądaj bez logowania →</button>
     </div>
     <div class="app">
@@ -653,6 +654,8 @@ async function setSession(u){
 async function afterLogin(){await setSession((await sb.auth.getSession()).data.session?.user||null);await loadData();$('login').classList.remove('show');render();}
 async function start(){
   if(!sb){$('login').classList.add('show');return;}
+  sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')showRecovery();});
+  if(window.location.hash&&window.location.hash.indexOf('type=recovery')>=0){showRecovery();return;}
   const {data}=await sb.auth.getSession();
   if(data.session){await afterLogin();}else{$('login').classList.add('show');}
 }
@@ -661,6 +664,65 @@ async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOA
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
 async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.tab='home';$('login').classList.add('show');render();}
 async function browseGuest(){await loadData();$('login').classList.remove('show');render();}
+async function doForgot(){
+  const e=$('lg_email')?$('lg_email').value.trim():'';
+  if(!e){toast('Wpisz e-mail, na który wyślemy link do zmiany hasła');return;}
+  if(!sb)return;
+  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:window.location.href.split('#')[0]});
+  if(error)return toast(error.message);
+  toast('Wysłaliśmy link do zmiany hasła na podany e-mail.');
+}
+function showRecovery(){
+  const l=$('login');if(!l)return;
+  l.classList.add('show');
+  l.innerHTML=`<img src="${CREST}" alt=""><div class="eyebrow">The Grey Henry Society</div><h2>Ustaw nowe hasło</h2><p>Wpisz nowe hasło do swojego konta.</p>
+    <input id="rec_pass" type="password" placeholder="Nowe hasło (min. 6 znaków)">
+    <input id="rec_pass2" type="password" placeholder="Powtórz hasło">
+    <button class="btn" onclick="doSetNewPassword()">Zapisz nowe hasło</button>`;
+}
+async function doSetNewPassword(){
+  const p=$('rec_pass').value,p2=$('rec_pass2').value;
+  if(p.length<6){toast('Hasło musi mieć min. 6 znaków');return;}
+  if(p!==p2){toast('Hasła nie są takie same');return;}
+  const {error}=await sb.auth.updateUser({password:p});
+  if(error)return toast(error.message);
+  toast('Hasło zmienione.');
+  if(history.replaceState)history.replaceState(null,'',window.location.pathname);
+  await afterLogin();
+}
+function renderAccount(){
+  const name=((state.profile&&state.profile.display_name)||'').replace(/"/g,'&quot;');
+  const email=(state.user&&state.user.email)||'';
+  return `
+  <div class="addhead"><button class="back" onclick="go('profile')" aria-label="Wróć">${ico('arrow')}</button><h2>Ustawienia konta</h2></div>
+  <div class="pad">
+    <div class="field"><label>E-mail</label><input value="${email}" disabled style="opacity:.65"></div>
+    <div class="field"><label>Imię / nazwa wyświetlana</label><input id="ac_name" value="${name}"></div>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:26px" onclick="saveAccountName()">Zapisz imię</button>
+    <div class="sprig" style="margin:6px 0 18px"><span>ZMIANA HASŁA</span></div>
+    <div class="field"><label>Nowe hasło</label><input id="ac_pass" type="password" placeholder="min. 6 znaków"></div>
+    <div class="field"><label>Powtórz nowe hasło</label><input id="ac_pass2" type="password"></div>
+    <button class="btn btn-gold" style="width:100%;margin-bottom:26px" onclick="changePassword()">Zmień hasło</button>
+    <button class="outbtn" style="width:100%;margin-bottom:30px" onclick="doLogout()">Wyloguj się</button>
+  </div>`;
+}
+async function saveAccountName(){
+  const n=$('ac_name')?$('ac_name').value.trim():'';
+  if(!n){toast('Podaj imię');return;}
+  if(!state.user){toast('Zaloguj się');return;}
+  const {error}=await sb.from('profiles').update({display_name:n}).eq('id',state.user.id);
+  if(error)return toast('Błąd: '+error.message);
+  if(state.profile)state.profile.display_name=n;
+  toast('Zapisano imię');
+}
+async function changePassword(){
+  const p=$('ac_pass')?$('ac_pass').value:'',p2=$('ac_pass2')?$('ac_pass2').value:'';
+  if(p.length<6){toast('Hasło musi mieć min. 6 znaków');return;}
+  if(p!==p2){toast('Hasła nie są takie same');return;}
+  const {error}=await sb.auth.updateUser({password:p});
+  if(error)return toast('Błąd: '+error.message);
+  toast('Hasło zmienione ✓');go('profile');
+}
 function norm(s){return (s||'').toLowerCase().replace(/[ąàá]/g,'a').replace(/ć/g,'c').replace(/[ęèé]/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/[óòô]/g,'o').replace(/ś/g,'s').replace(/[źż]/g,'z');}
 function findRecipe(id){return RECIPES.find(x=>x.id===id)||state.myRecipes.find(x=>x.id===id);}
 function checkRisk(r){const hits=[];r.ing.forEach(i=>{const n=(i[0]||'').toLowerCase();RISK.forEach(w=>{if(n.includes(w)&&!hits.includes(i[0]))hits.push(i[0]);});});return hits;}
@@ -995,6 +1057,7 @@ function renderProfile(){
     <div class="section-h"><h2 style="font-size:18px">Ustawienia</h2></div>
     <div style="padding-bottom:30px">
       ${[['flag','Tryb alergii'],['bell','Powiadomienia'],['book','Baza wiedzy'],['help','Pomoc i wsparcie'],['info','O Society']].map(([i,t])=>`<div class="menu-item" onclick="toast('${t} — wkrótce')"><span class="ic">${ico(i)}</span><span class="lbl">${t}</span><span class="ar">${ico('chev')}</span></div>`).join('')}
+      ${state.user?`<div class="menu-item" onclick="go('account')"><span class="ic">${ico('flag')}</span><span class="lbl">Ustawienia konta</span><span class="ar">${ico('chev')}</span></div>`:''}
       ${state.user?`<div class="menu-item" onclick="doLogout()"><span class="ic">${ico('x')}</span><span class="lbl">Wyloguj</span><span class="ar">${ico('chev')}</span></div>`:''}
     </div>
     <div class="brandsign"><img src="${CREST}" alt=""><span>Troska godna rodowodu</span></div>
@@ -1060,7 +1123,7 @@ function goDietitian(){state.tab='recipes';state.cat='all';state.q='';state.dogM
 function goComm(){state.tab='recipes';state.cat='all';state.q='';state.dogMatch=false;state.flags=new Set(['comm']);state.showFilters=false;render();}
 function clearMatch(){state.dogMatch=false;state.flags.clear();render();}
 
-const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile};
+const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile,account:renderAccount};
 let lastTab=null;
 function render(){
   const sc=$('screen');
@@ -1119,7 +1182,7 @@ function clearFilters(){state.flags.clear();state.q='';state.cat='all';state.sor
 function setQ(v){state.q=v;render();const s=$('search');if(s){s.focus();s.setSelectionRange(v.length,v.length);}}
 function toggleFlag(f){state.flags.has(f)?state.flags.delete(f):state.flags.add(f);render();}
 function renderNav(){
-  const ak=state.tab==='add'?'recipes':state.tab;
+  const ak=state.tab==='add'?'recipes':(state.tab==='account'?'profile':state.tab);
   const items=[['home','home','Start'],['recipes','book','Przepisy'],['planner','calendar','Planer'],['community','users','Społeczność'],['profile','user','Profil']];
   $('nav').innerHTML=items.map(([k,i,l])=>`<button class="${ak===k?'active':''}" onclick="go('${k}')"><span class="dot"></span>${ico(i)}<span>${l}</span></button>`).join('');
 }
