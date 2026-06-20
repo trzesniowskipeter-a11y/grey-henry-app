@@ -124,6 +124,7 @@ td .row{display:flex;gap:6px;flex-wrap:wrap}
       <a data-v="dash" class="active"><span class="ic">▦</span> Pulpit</a>
       <a data-v="mod"><span class="ic">⚑</span> Moderacja <span id="modcount"></span></a>
       <a data-v="recipes"><span class="ic">❦</span> Przepisy</a>
+      <a data-v="import"><span class="ic">⇪</span> Import zbiorczy</a>
       <a data-v="users"><span class="ic">◍</span> Użytkownicy</a>
       <a data-v="comments"><span class="ic">❝</span> Komentarze</a>
       <a data-v="tags"><span class="ic">⌗</span> Tagi</a>
@@ -186,7 +187,7 @@ async function refreshAll(){
   $('view').innerHTML='<div class="loading">Ładowanie danych…</div>';
   const [u,r,c,t,ratings,dogs]=await Promise.all([
     sb.from('profiles').select('id,display_name,role,is_premium,created_at').order('created_at'),
-    sb.from('recipes').select('id,title,status,rating_avg,rating_count,created_at,author_id').order('created_at',{ascending:false}),
+    sb.from('recipes').select('id,title,status,rating_avg,rating_count,created_at,author_id,featured').order('created_at',{ascending:false}),
     sb.from('comments').select('id,body,created_at,recipe_id,author_id').order('created_at',{ascending:false}).limit(150),
     sb.from('tags').select('key,label,grp').order('grp'),
     sb.from('ratings').select('*',{count:'exact',head:true}),
@@ -205,12 +206,13 @@ async function refreshAll(){
 function setView(v){view=v;document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));render();}
 document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.dataset.v)setView(a.dataset.v);});
 
-const TITLES={dash:['Pulpit','Przegląd najważniejszych liczb'],mod:['Moderacja','Przepisy oczekujące na akceptację'],recipes:['Przepisy','Wszystkie przepisy w bazie'],users:['Użytkownicy','Konta i role'],comments:['Komentarze','Najnowsze komentarze'],tags:['Tagi','Taksonomia kategorii']};
+const TITLES={dash:['Pulpit','Przegląd najważniejszych liczb'],mod:['Moderacja','Przepisy oczekujące na akceptację'],recipes:['Przepisy','Wszystkie przepisy w bazie'],import:['Import zbiorczy','Masowe dodawanie przepisów'],users:['Użytkownicy','Konta i role'],comments:['Komentarze','Najnowsze komentarze'],tags:['Tagi','Taksonomia kategorii']};
 function render(){
   $('vtitle').textContent=TITLES[view][0];$('vsub').textContent=TITLES[view][1];
   if(view==='dash')return renderDash();
   if(view==='mod')return renderRecipeTable(db.recipes.filter(r=>r.status==='pending'),true);
   if(view==='recipes')return renderRecipes();
+  if(view==='import')return renderImport();
   if(view==='users')return renderUsers();
   if(view==='comments')return renderComments();
   if(view==='tags')return renderTags();
@@ -264,7 +266,7 @@ function renderRecipeRows(list){
   return '<table><thead><tr><th>Przepis</th><th>Autor</th><th>Status</th><th>Ocena</th><th>Dodano</th><th></th></tr></thead><tbody>'+list.map(r=>{
     let act=`<button class="btn sm gold" onclick="openEditor('${r.id}')">Edytuj</button>`;
     if(r.status==='pending')act+=`<button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button><button class="btn sm danger" onclick="reject('${r.id}')">Odrzuć</button>`;
-    else if(r.status==='approved')act+=`<button class="btn sm ghost" onclick="setStatus('${r.id}','rejected')">Ukryj</button>`;
+    else if(r.status==='approved')act+=`<button class="btn sm ghost" onclick="setStatus('${r.id}','rejected')">Ukryj</button><button class="btn sm ${r.featured?'gold':'ghost'}" onclick="setFeatured('${r.id}',${r.featured?'false':'true'})">${r.featured?'★ Wyróżniony':'☆ Wyróżnij'}</button>`;
     else act+=`<button class="btn sm" onclick="approve('${r.id}')">Opublikuj</button>`;
     if(isAdmin())act+=`<button class="btn sm danger" onclick="delRecipe('${r.id}','${esc((r.title||'').replace(/'/g,""))}')">Usuń</button>`;
     return `<tr><td><b>${esc(r.title)}</b></td><td class="muted-cell">${esc(uMap[r.author_id]||'—')}</td><td>${statusBadge(r.status)}</td><td class="muted-cell">${r.rating_avg?('★ '+r.rating_avg+' ('+(r.rating_count||0)+')'):'—'}</td><td class="muted-cell">${fmtD(r.created_at)}</td><td><div class="row">${act}</div></td></tr>`;
@@ -303,6 +305,51 @@ function renderTags(){
   $('view').innerHTML=html;
 }
 function renderInto(){render();}
+function renderImport(){
+  $('view').innerHTML=`<div class="panel"><div class="panel-h"><h3>Import zbiorczy przepisów</h3><div class="tools"><button class="btn ghost sm" onclick="bulkSample()">Wstaw wzór</button><button class="btn gold sm" onclick="bulkImport()">Importuj</button></div></div>
+  <div style="padding:16px 18px">
+    <p class="muted-cell" style="margin-bottom:10px;line-height:1.6">Wklej tablicę JSON. Każdy przepis wymaga <b>title</b> oraz <b>tags</b> (min. jeden klucz <code>m_</code> i jeden <code>i_</code>). Opcjonalnie: <code>description</code>, <code>difficulty</code> (easy/medium/hard), <code>time_min</code>, <code>kcal</code>, <code>status</code> (draft/approved), <code>featured</code> (true/false), <code>ingredients</code> (["Nazwa - ilość", …]), <code>steps</code> (["Krok 1", …]). Kliknij „Wstaw wzór", aby zobaczyć przykład.</p>
+    <textarea id="bulkJson" rows="16" style="width:100%;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fcfaf4"></textarea>
+    <div id="bulkResult" style="margin-top:12px"></div>
+  </div></div>`;
+}
+function bulkSample(){
+  const ex=[
+    {title:"Miska z indykiem i ryżem",description:"Lekkostrawny obiad dla dorosłego psa.",difficulty:"easy",time_min:30,kcal:280,status:"approved",featured:false,tags:["m_obiad","i_indyk","g_lekko","a_dorosly","met_gotowane","s_srednie"],ingredients:["Indyk - 200 g","Ryż biały - 80 g","Marchew - 50 g"],steps:["Ugotuj indyka bez soli.","Dodaj ugotowany ryż i marchew.","Wymieszaj i ostudź przed podaniem."]},
+    {title:"Wątróbkowe smaczki treningowe",description:"Chrupiące przekąski na trening.",difficulty:"medium",time_min:45,kcal:120,status:"approved",tags:["m_smaczek","i_wolowina","met_pieczone","st_szybkie","tex_chrupiace"],ingredients:["Wątróbka wołowa - 300 g","Mąka ryżowa - 100 g","Jajko - 1 szt"],steps:["Zmiksuj wątróbkę na gładko.","Dodaj mąkę i jajko, wyrób ciasto.","Piecz 20 min w 170°C, pokrój w kostkę."]}
+  ];
+  if($('bulkJson'))$('bulkJson').value=JSON.stringify(ex,null,2);
+}
+async function bulkImport(){
+  const ta=$('bulkJson');if(!ta)return;
+  let arr;
+  try{arr=JSON.parse(ta.value);}catch(e){$('bulkResult').innerHTML='<div class="empty" style="color:#9b3b32">Błąd JSON: '+esc(e.message)+'</div>';return;}
+  if(!Array.isArray(arr)){$('bulkResult').innerHTML='<div class="empty" style="color:#9b3b32">JSON musi być tablicą [ … ]</div>';return;}
+  $('bulkResult').innerHTML='<div class="loading">Importuję '+arr.length+' przepisów…</div>';
+  let ok=0;const errs=[];
+  for(let idx=0;idx<arr.length;idx++){
+    const it=arr[idx]||{};
+    try{
+      if(!it.title){errs.push('#'+(idx+1)+': brak pola title');continue;}
+      const keys=Array.isArray(it.tags)?it.tags:[];
+      if(!keys.some(k=>k.indexOf('m_')===0)||!keys.some(k=>k.indexOf('i_')===0)){errs.push('#'+(idx+1)+' ('+it.title+'): wymagany tag m_ i i_');continue;}
+      const {data:rec,error}=await sb.from('recipes').insert({author_id:me.id,title:it.title,description:it.description||null,difficulty:it.difficulty||'easy',time_min:it.time_min||null,kcal:it.kcal||null}).select().single();
+      if(error){errs.push('#'+(idx+1)+': '+error.message);continue;}
+      const rid=rec.id;
+      const {data:tg}=await sb.from('tags').select('id,key').in('key',keys);
+      if(tg&&tg.length)await sb.from('recipe_tags').insert(tg.map(t=>({recipe_id:rid,tag_id:t.id})));
+      const ings=(it.ingredients||[]).map((x,i)=>{if(Array.isArray(x))return {recipe_id:rid,position:i,name:x[0],amount:x[1]||''};const p=String(x).split(/\s[-\u2013]\s/);return {recipe_id:rid,position:i,name:p[0]||String(x),amount:p[1]||''};});
+      if(ings.length)await sb.from('recipe_ingredients').insert(ings);
+      const steps=(it.steps||[]).map((b,i)=>({recipe_id:rid,position:i,body:String(b)}));
+      if(steps.length)await sb.from('recipe_steps').insert(steps);
+      if(it.status==='approved'||it.status==='pending'){const {error:se}=await sb.from('recipes').update({status:it.status}).eq('id',rid);if(se){errs.push('#'+(idx+1)+' ('+it.title+'): status — '+se.message);}}
+      if(it.featured){await sb.from('recipes').update({featured:false}).eq('featured',true);await sb.from('recipes').update({featured:true}).eq('id',rid);}
+      ok++;
+    }catch(e){errs.push('#'+(idx+1)+': '+(e.message||e));}
+  }
+  $('bulkResult').innerHTML='<div style="padding:6px 0;font-size:14px"><b style="color:#2f6b46">Dodano: '+ok+'</b>'+(errs.length?' · <b style="color:#9b3b32">Pominięto: '+errs.length+'</b><ul style="margin:8px 0 0 18px;font-size:12.5px;color:#9b3b32;line-height:1.6">'+errs.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul>':' — wszystko OK ✓')+'</div>';
+  await refreshAll();
+}
 
 // AKCJE
 const ADDGROUPS=[
@@ -317,7 +364,10 @@ const ADDGROUPS=[
  ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
  ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
  ['Bez (alergeny)',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
- ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+ ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]],
+ ['Suplementacja',[['sup_bez','Bez suplementów'],['sup_wymaga','Wymaga suplementacji']]],
+ ['Sezon',[['x_sezon','Sezonowe']]],
+ ['Oznaczenie jakości (personel)',[['q_diet','Od dietetyka'],['q_verif','Zweryfikowany']]]
 ];
 const DIFFOPTS=[['easy','Łatwy'],['medium','Średni'],['hard','Trudny']];
 async function openEditor(id){
@@ -352,6 +402,7 @@ async function openEditor(id){
     <div class="sec"><b>Kategorie</b><div id="e_tags">${groups}</div></div>
     <div class="sec"><label>Składniki (nazwa - ilość, każdy w nowej linii)</label><textarea id="e_ing" rows="5">${esc(ingText)}</textarea></div>
     <div class="sec"><label>Kroki przygotowania (każdy w nowej linii)</label><textarea id="e_steps" rows="5">${esc(stepText)}</textarea></div>
+    <div class="sec"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--ink)"><input type="checkbox" id="e_featured" ${r.featured?'checked':''} style="width:auto;margin:0"> ★ Wyróżnij na stronie głównej (Polecane dnia)</label></div>
     <div class="sec" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px">${foot}</div>`;
 }
 async function saveRecipeEdit(id,publish){
@@ -361,7 +412,8 @@ async function saveRecipeEdit(id,publish){
   if(!keys.some(k=>k.indexOf('m_')===0)||!keys.some(k=>k.indexOf('i_')===0)){toast('Wymagany rodzaj posiłku i główny składnik');return;}
   const ing=v('e_ing').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(/\s[-\u2013]\s/);return[p[0]||l,p[1]||''];});
   const steps=v('e_steps').split('\n').map(s=>s.trim()).filter(Boolean);
-  const row={title,description:v('e_desc')||null,difficulty:v('e_diff')||'easy',time_min:parseInt(v('e_time'))||null,kcal:parseInt(v('e_kcal'))||null};
+  const feat=!!($('e_featured')&&$('e_featured').checked);
+  const row={title,description:v('e_desc')||null,difficulty:v('e_diff')||'easy',time_min:parseInt(v('e_time'))||null,kcal:parseInt(v('e_kcal'))||null,featured:feat};
   let rid=id;
   try{
     if(!rid){const {data,error}=await sb.from('recipes').insert(Object.assign({author_id:me.id,status:'draft'},row)).select().single();if(error){toast('Błąd: '+error.message);return;}rid=data.id;}
@@ -373,6 +425,7 @@ async function saveRecipeEdit(id,publish){
     if(ing.length)await sb.from('recipe_ingredients').insert(ing.map((x,i)=>({recipe_id:rid,position:i,name:x[0],amount:x[1]})));
     await sb.from('recipe_steps').delete().eq('recipe_id',rid);
     if(steps.length)await sb.from('recipe_steps').insert(steps.map((b,i)=>({recipe_id:rid,position:i,body:b})));
+    if(feat){await sb.from('recipes').update({featured:false}).neq('id',rid).eq('featured',true);}
     if(publish){const {error:pe}=await sb.from('recipes').update({status:'approved'}).eq('id',rid);if(pe){toast('Zapisano, ale publikacja: '+pe.message);closeModal();await refreshAll();return;}}
   }catch(e){toast('Błąd zapisu: '+(e.message||e));return;}
   toast(publish?'Zapisano i opublikowano':'Zapisano zmiany');closeModal();await refreshAll();
@@ -382,6 +435,12 @@ function closeModal(){$('modal').classList.remove('open');}
 async function approve(id){const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:true});if(error){toast('Błąd: '+error.message);return;}toast('Zatwierdzono');closeModal();await refreshAll();}
 async function reject(id){const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:false});if(error){toast('Błąd: '+error.message);return;}toast('Odrzucono');closeModal();await refreshAll();}
 async function setStatus(id,s){const {error}=await sb.from('recipes').update({status:s}).eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Zmieniono status');closeModal();await refreshAll();}
+async function setFeatured(id,val){
+  if(val){await sb.from('recipes').update({featured:false}).eq('featured',true);}
+  const {error}=await sb.from('recipes').update({featured:val}).eq('id',id);
+  if(error){toast('Błąd: '+error.message);return;}
+  toast(val?'Wyróżniono na głównej':'Zdjęto wyróżnienie');await refreshAll();
+}
 async function delRecipe(id,title){if(!confirm('Usunąć przepis „'+title+'"? Tej operacji nie można cofnąć.'))return;const {error}=await sb.from('recipes').delete().eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Usunięto przepis');await refreshAll();}
 async function delComment(id){if(!confirm('Usunąć komentarz?'))return;const {error}=await sb.from('comments').delete().eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Usunięto komentarz');await refreshAll();}
 async function changeRole(id,role){

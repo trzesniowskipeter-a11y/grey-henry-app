@@ -577,7 +577,7 @@ function mapDbRecipe(r,ings,steps,tagKeys,i){
   const badge=tagKeys.includes('q_diet')?'diet':(tagKeys.includes('q_verif')?'verif':'comm');
   return {id:r.id,name:r.title,cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
     time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
-    portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,ratingCount:r.rating_count||0,created:r.created_at||'',desc:r.description||'',
+    portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,ratingCount:r.rating_count||0,featured:r.featured||false,created:r.created_at||'',desc:r.description||'',
     flags:tagKeys,ing:ings.map(x=>[x.name,x.amount||'']),steps:steps.map(x=>x.body),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
 }
 async function loadData(){
@@ -780,7 +780,7 @@ function dogCardHTML(d,i){
 
 function renderHome(){
   const dog=state.dogs[0];
-  const featured=RECIPES[0];
+  const featured=RECIPES.find(r=>r.featured)||RECIPES[0];
   if(!featured)return '<div class="pad muted" style="padding-top:60px;text-align:center">Brak przepisów do wyświetlenia.</div>';
   const diet=RECIPES.filter(r=>r.badge==='diet');
   const popular=RECIPES.filter(r=>r.badge==='comm');
@@ -796,8 +796,8 @@ function renderHome(){
   <div class="pad"><div class="hero">
     <img src="${MONOG}" alt="" style="position:absolute;top:16px;right:16px;width:66px;opacity:.12;z-index:0;pointer-events:none">
     <span class="eyebrow">Polecane dnia</span><h3>${featured.name}</h3><p>${featured.desc}</p>
-    <div class="meta"><span>${featured.time}</span><span>${featured.kcal}</span><span>${star} ${featured.rating}</span></div>
-    <div style="margin-top:18px"><button class="btn btn-gold" onclick="openRecipe(${featured.id})">Zobacz przepis</button></div>
+    <div class="meta"><span>${featured.time}</span><span>${featured.kcal}</span><span>${featured.ratingCount?star+' '+featured.rating:'Nowość'}</span></div>
+    <div style="margin-top:18px"><button class="btn btn-gold" onclick="openRecipe('${featured.id}')">Zobacz przepis</button></div>
   </div></div>
   ${favList.length?`<div class="section-h pad"><h2>Twoje ulubione</h2><a onclick="go('recipes')">Wszystkie</a></div><div class="rail">${favList.map(r=>recipeCardHTML(r)).join('')}</div>`:''}
   ${dog?`<div class="section-h pad"><h2>Dla ${dog.name}</h2><a onclick="goMatched()">Wszystkie</a></div><div class="rail">${matched.map(r=>recipeCardHTML(r)).join('')}</div>`:''}
@@ -874,7 +874,9 @@ function renderAddRecipe(){
    ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
    ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
    ['Bez (alergeny)',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
-   ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+   ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]],
+   ['Suplementacja',[['sup_bez','Bez suplementów'],['sup_wymaga','Wymaga suplementacji']]],
+   ['Sezon',[['x_sezon','Sezonowe']]]
   ];
   return `
   <div class="addhead"><button class="back" onclick="go('recipes')" aria-label="Wróć">${ico('arrow')}</button><h2>Dodaj przepis</h2></div>
