@@ -793,21 +793,34 @@ function renderRecipes(){
 }
 
 function renderAddRecipe(){
+  const groups=[
+   ['Rodzaj posiłku *',[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_kolacja','Kolacje'],['m_przekaska','Przekąski'],['m_smaczek','Smaczki treningowe']]],
+   ['Główny składnik *',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']]],
+   ['Cel / potrzeby',[['g_bialko','Wysokobiałkowe'],['g_lekko','Lekkostrawne'],['g_nisko','Niskotłuszczowe'],['g_brzuch','Wrażliwy brzuch'],['g_alergik','Dla alergików'],['g_nadwaga','Nadwaga'],['g_aktywne','Aktywne'],['g_zabieg','Po zabiegach']]],
+   ['Wiek psa',[['a_szczeniak','Szczenięta'],['a_dorosly','Dorosłe'],['a_senior','Seniory']]],
+   ['Wielkość psa',[['s_male','Małe psy'],['s_srednie','Średnie psy'],['s_duze','Duże psy']]],
+   ['Typ / forma',[['f_mokra','Mokre karmy'],['f_pelno','Pełnoporcjowe'],['f_dodatek','Dodatki do karmy'],['f_bulion','Buliony i sosy'],['f_pasta','Pasty do maty'],['f_mroz','Do mrożenia'],['f_podroz','Na podróż']]],
+   ['Metoda przygotowania',[['met_gotowane','Gotowane'],['met_pieczone','Pieczone'],['met_duszone','Duszone'],['met_surowe','Surowe']]],
+   ['Przechowywanie',[['st_mroz','Do mrożenia'],['st_lodowka','Do lodówki'],['st_wynos','Na wynos'],['st_batch','Batch cooking']]],
+   ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
+   ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
+   ['Bez (alergeny)',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
+   ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+  ];
   return `
   <div class="addhead"><button class="back" onclick="go('recipes')" aria-label="Wróć">${ico('arrow')}</button><h2>Dodaj przepis</h2></div>
-  <div class="pad"><p class="muted" style="margin-bottom:18px">Twój przepis trafi do moderatora i pojawi się publicznie dopiero po akceptacji.</p>
-    <div class="field"><label>Nazwa przepisu</label><input id="r_name" placeholder="np. Domowa miska z indykiem"></div>
-    <div class="field"><label>Zdjęcie dania</label><button class="outbtn" type="button" onclick="toast('Dodawanie zdjęć — w pełnej wersji')">${ico('image')} Dodaj zdjęcie</button></div>
+  <div class="pad"><p class="muted" style="margin-bottom:18px">Twój przepis trafi do moderatora i pojawi się publicznie dopiero po akceptacji. Pola oznaczone * są wymagane.</p>
+    <div class="field"><label>Nazwa przepisu *</label><input id="r_name" placeholder="np. Domowa miska z indykiem"></div>
+    <div class="field"><label>Zdjęcie dania</label><button class="outbtn" type="button" onclick="toast('Dodawanie zdjęć — wkrótce')">${ico('image')} Dodaj zdjęcie</button></div>
     <div class="field"><label>Krótki opis</label><textarea id="r_desc" placeholder="Dla kogo i czym wyróżnia się ten posiłek"></textarea></div>
-    <div class="row2"><div class="field"><label>Kategoria</label><select id="r_cat">${MEALCATS.filter(c=>c[0]!=='all').map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div>
-      <div class="field"><label>Czas</label><input id="r_time" placeholder="np. 30 min"></div></div>
-    <div class="row2"><div class="field"><label>Główny składnik</label><select id="r_ingr">${[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']].map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></div>
+    <div class="row2"><div class="field"><label>Czas</label><input id="r_time" placeholder="np. 30 min"></div>
       <div class="field"><label>Kcal (opcjonalnie)</label><input id="r_kcal" placeholder="np. 290" inputmode="numeric"></div></div>
-    <div class="field"><label>Bez (alergeny) — zaznacz, jeśli dotyczy</label><div class="chips" id="r_ff">${[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']].map(([k,l])=>`<button type="button" class="chip" data-k="${k}" onclick="this.classList.toggle('active')">${l}</button>`).join('')}</div></div>
-    <div class="field"><label>Składniki i ilości (każdy w nowej linii)</label><textarea id="r_ing" placeholder="Pierś z indyka - 250 g&#10;Ryż - 80 g"></textarea></div>
+    <div class="field"><label>Trudność</label><select id="r_diff"><option value="easy">Łatwy</option><option value="medium">Średni</option><option value="hard">Trudny</option></select></div>
+    <div id="addtags">
+    ${groups.map(g=>`<div class="field"><label>${g[0]}</label><div class="chips">${g[1].map(([k,l])=>`<button type="button" class="chip achip" data-k="${k}" onclick="this.classList.toggle('active')">${l}</button>`).join('')}</div></div>`).join('')}
+    </div>
+    <div class="field"><label>Składniki i ilości (każdy w nowej linii, format: nazwa - ilość)</label><textarea id="r_ing" placeholder="Pierś z indyka - 250 g&#10;Ryż - 80 g"></textarea></div>
     <div class="field"><label>Sposób przygotowania (każdy krok w nowej linii)</label><textarea id="r_steps" placeholder="Ugotuj indyka bez soli…&#10;Dodaj ugotowany ryż…"></textarea></div>
-    <div class="field"><label>Dla jakiego psa</label><input id="r_for" placeholder="np. Psy dorosłe, wrażliwy żołądek"></div>
-    <div class="field"><label>Ostrzeżenia / uwagi</label><input id="r_warn" placeholder="np. wprowadzaj stopniowo"></div>
     <div class="checkrow" id="r_consent" onclick="this.classList.toggle('on')"><span class="box">${ico('check')}</span><span>Wyrażam zgodę na publikację przepisu po weryfikacji.</span></div>
     <button class="btn btn-gold" style="width:100%;margin-bottom:30px" onclick="saveRecipe()">Wyślij do akceptacji</button>
   </div>`;
@@ -816,21 +829,21 @@ async function saveRecipe(){
   const v=id=>($(id)?$(id).value.trim():'');
   if(!state.user){toast('Zaloguj się, aby dodać przepis');return;}
   if(!v('r_name')){toast('Podaj nazwę przepisu');return;}
+  const keys=[...document.querySelectorAll('#addtags .achip.active')].map(b=>b.dataset.k);
+  if(!keys.some(k=>k.indexOf('m_')===0)){toast('Wybierz przynajmniej jeden rodzaj posiłku');return;}
+  if(!keys.some(k=>k.indexOf('i_')===0)){toast('Wybierz główny składnik');return;}
   if(!$('r_consent').classList.contains('on')){toast('Zaznacz zgodę na publikację');return;}
-  const meal=v('r_cat')||'m_obiad', ingr=v('r_ingr')||'i_kurczak';
   const ing=v('r_ing').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split(/\s[-\u2013]\s/);return [p[0]||l,p[1]||''];});
   const steps=v('r_steps').split('\n').map(s=>s.trim()).filter(Boolean);
-  const ff=[...document.querySelectorAll('#r_ff .chip.active')].map(b=>b.dataset.k);
   try{
-    const {data:rec,error}=await sb.from('recipes').insert({author_id:state.user.id,title:v('r_name'),description:v('r_desc')||null,difficulty:'easy',time_min:parseInt(v('r_time'))||null,kcal:parseInt(v('r_kcal'))||null}).select().single();
+    const {data:rec,error}=await sb.from('recipes').insert({author_id:state.user.id,title:v('r_name'),description:v('r_desc')||null,difficulty:v('r_diff')||'easy',time_min:parseInt(v('r_time'))||null,kcal:parseInt(v('r_kcal'))||null}).select().single();
     if(error){toast('Błąd: '+error.message);return;}
     if(ing.length)await sb.from('recipe_ingredients').insert(ing.map((x,i)=>({recipe_id:rec.id,position:i,name:x[0],amount:x[1]})));
     if(steps.length)await sb.from('recipe_steps').insert(steps.map((b,i)=>({recipe_id:rec.id,position:i,body:b})));
-    const keys=[meal,ingr,...ff];
     const {data:tg}=await sb.from('tags').select('id').in('key',keys);
     if(tg&&tg.length)await sb.from('recipe_tags').insert(tg.map(t=>({recipe_id:rec.id,tag_id:t.id})));
     const {error:se}=await sb.rpc('submit_recipe',{p_recipe:rec.id});
-    await loadMine();
+    await loadMine();await loadPending();
     go('profile');
     toast(se?('Zapisano szkic. '+se.message):'Wysłano do akceptacji ✓');
   }catch(e){toast('Błąd zapisu: '+(e.message||e));}
