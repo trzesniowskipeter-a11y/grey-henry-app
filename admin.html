@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Grey Henry Society — Panel administracyjny</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--green:#2A3431;--deep:#1C2420;--gold:#BFB178;--gold2:#8F7F48;--parch:#E8DFCB;--ivory:#F4EEE1;--ink:#23302B;--muted:#6B7771;--line:#e3dccb;--bg:#FBF8F1}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Jost',system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+h1,h2,h3,.serif{font-family:'Playfair Display',serif;font-weight:500}
+a{color:inherit;text-decoration:none}
+.muted{color:var(--muted)}
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#2A3431,#1C2420)}
+.loginbox{background:var(--ivory);width:340px;max-width:92vw;border-radius:20px;padding:34px 28px;box-shadow:0 30px 80px rgba(0,0,0,.4);text-align:center}
+.loginbox img{height:74px;margin-bottom:10px}
+.loginbox .eyebrow{letter-spacing:3px;text-transform:uppercase;font-size:11px;color:var(--gold2);font-weight:600}
+.loginbox h1{font-size:22px;margin:6px 0 18px}
+input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);outline:none}
+input:focus,select:focus{border-color:var(--gold)}
+.loginbox input{margin-bottom:11px}
+.btn{font-family:inherit;font-weight:500;font-size:14px;border:none;border-radius:11px;padding:11px 16px;cursor:pointer;background:var(--green);color:var(--ivory);transition:opacity .15s,transform .05s}
+.btn:hover{opacity:.92}.btn:active{transform:scale(.99)}
+.btn.block{width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.gold{background:var(--gold2)}
+.btn.danger{background:#9b3b32}
+.btn.sm{padding:7px 11px;font-size:12.5px;border-radius:9px}
+.err{color:#9b3b32;font-size:13px;min-height:18px;margin-top:4px}
+/* LAYOUT */
+#app{display:none;min-height:100vh;grid-template-columns:248px 1fr;grid-template-rows:100vh}
+.sidebar{background:linear-gradient(180deg,#2A3431,#1C2420);color:var(--ivory);padding:24px 16px;display:flex;flex-direction:column;gap:6px;overflow:auto}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 20px}
+.brand img{height:42px}
+.brand b{font-family:'Playfair Display',serif;font-size:16px;font-weight:500;line-height:1.1}
+.brand span{display:block;font-size:10px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.nav a{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:10px;color:#cdd3cd;font-size:14px;cursor:pointer;font-weight:400}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:var(--gold2);color:#fff;font-weight:500}
+.nav .ic{width:18px;text-align:center;opacity:.85}
+.sb-foot{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);font-size:12.5px;color:#aeb6ae}
+.sb-foot .who{color:#fff;font-weight:500}
+.main{overflow:auto;padding:0 0 60px}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(251,248,241,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+.topbar h2{font-size:22px}
+.topbar .sub{font-size:13px;color:var(--muted)}
+.content{padding:26px 32px}
+/* CARDS / KPI */
+.grid{display:grid;gap:16px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;height:3px;width:100%;background:linear-gradient(90deg,var(--gold),transparent)}
+.kpi .lab{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2);font-weight:600}
+.kpi .val{font-family:'Playfair Display',serif;font-size:30px;margin-top:6px}
+.kpi .hint{font-size:12px;color:var(--muted);margin-top:2px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:6px 0;margin-top:18px;overflow:hidden}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.panel-h h3{font-size:17px}
+.panel-h .tools{display:flex;gap:8px;align-items:center}
+.panel-h input,.panel-h select{width:auto;padding:8px 11px}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:11px 18px;border-bottom:1px solid #f0ebdd;vertical-align:middle}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;background:#fcfaf4}
+tr:last-child td{border-bottom:none}
+td .row{display:flex;gap:6px;flex-wrap:wrap}
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.4px}
+.b-approved{background:#e3efe6;color:#2f6b46}
+.b-pending{background:#fbf1d8;color:#8a6d1e}
+.b-rejected{background:#f6e2df;color:#9b3b32}
+.b-draft{background:#eceae3;color:#6b6256}
+.role{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;background:#eef0ec;color:#3c463f}
+.role.admin{background:#2A3431;color:var(--ivory)}
+.role.moderator{background:var(--gold2);color:#fff}
+.role.dietitian{background:#dfe7df;color:#2f6b46}
+.muted-cell{color:var(--muted);font-size:12.5px}
+.empty{padding:30px 18px;text-align:center;color:var(--muted)}
+.loading{padding:30px;text-align:center;color:var(--muted)}
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(20,28,24,.5);display:none;align-items:center;justify-content:center;z-index:40;padding:20px}
+.modal.open{display:flex}
+.modal-box{background:#fff;border-radius:18px;max-width:560px;width:100%;max-height:86vh;overflow:auto;padding:24px 26px}
+.modal-box h3{font-size:20px;margin-bottom:4px}
+.modal-box .sec{margin-top:16px}
+.modal-box .sec b{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2)}
+.modal-box ul{margin:8px 0 0 18px;font-size:13.5px;line-height:1.7}
+.taglist{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{background:#f1ede1;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:var(--ivory);padding:12px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.grpttl{padding:14px 18px 4px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold2);font-weight:600}
+@media(max-width:820px){#app{grid-template-columns:1fr;grid-template-rows:auto 1fr}.sidebar{flex-direction:row;flex-wrap:wrap;height:auto;position:sticky;top:0;z-index:10}.sb-foot{display:none}.brand{width:100%;padding-bottom:8px}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="loginbox">
+    <img src="logo/crest_green.png" alt="" onerror="this.style.display='none'">
+    <div class="eyebrow">The Grey Henry Society</div>
+    <h1>Panel administracyjny</h1>
+    <input id="lemail" type="email" placeholder="E-mail" autocomplete="username">
+    <input id="lpass" type="password" placeholder="Hasło" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn block" onclick="doLogin()">Zaloguj się</button>
+    <div class="err" id="lerr"></div>
+    <p class="muted" style="font-size:12px;margin-top:10px">Dostęp tylko dla administratorów i moderatorów.</p>
+  </div>
+</div>
+
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand"><img src="logo/mono_gold.png" alt="" onerror="this.style.display='none'"><div><b>Grey Henry</b><span>Administracja</span></div></div>
+    <nav class="nav" id="nav">
+      <a data-v="dash" class="active"><span class="ic">▦</span> Pulpit</a>
+      <a data-v="mod"><span class="ic">⚑</span> Moderacja <span id="modcount"></span></a>
+      <a data-v="recipes"><span class="ic">❦</span> Przepisy</a>
+      <a data-v="users"><span class="ic">◍</span> Użytkownicy</a>
+      <a data-v="comments"><span class="ic">❝</span> Komentarze</a>
+      <a data-v="tags"><span class="ic">⌗</span> Tagi</a>
+    </nav>
+    <div class="sb-foot">
+      <div class="who" id="whoami"></div>
+      <div id="whorole" style="margin:3px 0 10px"></div>
+      <button class="btn ghost sm" style="color:#cdd3cd;border-color:rgba(255,255,255,.2)" onclick="doLogout()">Wyloguj</button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar"><div><h2 id="vtitle">Pulpit</h2><div class="sub" id="vsub"></div></div><button class="btn ghost sm" onclick="refreshAll()">Odśwież dane</button></div>
+    <div class="content" id="view"><div class="loading">Ładowanie…</div></div>
+  </main>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal-box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL="https://aprzeqqjtwtbaoqbdolv.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwcnplcXFqdHd0YmFvcWJkb2x2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzY1MjYsImV4cCI6MjA5NzQ1MjUyNn0.AxNIw_2qJf32ne8XslXFFMjV4dU9jLlFkOOxmUmD0QM";
+// plainFetch: konwersja Headers->obiekt (fix DataCloneError w sandboxie)
+function _pf(input,init){init=init||{};if(init.headers&&typeof init.headers.forEach==='function'){const h={};init.headers.forEach((v,k)=>h[k]=v);init.headers=h;}return fetch(input,init);}
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true},global:{fetch:_pf}});
+const STAFF=['admin','moderator','dietitian'];
+const $=id=>document.getElementById(id);
+let me=null, db={users:[],recipes:[],comments:[],tags:[],counts:{}}, uMap={}, rMap={}, view='dash';
+let recFilter='all', recQ='', userQ='';
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function fmtD(s){if(!s)return '—';try{return new Date(s).toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return '—';}}
+const isAdmin=()=>me&&me.role==='admin';
+
+async function doLogin(){
+  $('lerr').textContent='';
+  const email=$('lemail').value.trim(), pass=$('lpass').value;
+  if(!email||!pass){$('lerr').textContent='Podaj e-mail i hasło.';return;}
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){$('lerr').textContent='Błąd logowania: '+error.message;return;}
+  await afterLogin(data.user);
+}
+async function afterLogin(user){
+  const {data:prof}=await sb.from('profiles').select('display_name,role').eq('id',user.id).single();
+  if(!prof||STAFF.indexOf(prof.role)<0){
+    $('lerr').textContent='Brak uprawnień — to konto nie jest administratorem ani moderatorem.';
+    await sb.auth.signOut();return;
+  }
+  me={id:user.id,name:prof.display_name||'Administrator',role:prof.role};
+  $('login').style.display='none';$('app').style.display='grid';
+  $('whoami').textContent=me.name;
+  $('whorole').innerHTML='<span class="role '+me.role+'">'+me.role+'</span>';
+  if(!isAdmin()){const ua=document.querySelector('#nav a[data-v="users"]');if(ua)ua.style.display='none';}
+  await refreshAll();
+}
+async function doLogout(){await sb.auth.signOut();location.reload();}
+
+async function refreshAll(){
+  $('view').innerHTML='<div class="loading">Ładowanie danych…</div>';
+  const [u,r,c,t,ratings,dogs]=await Promise.all([
+    sb.from('profiles').select('id,display_name,role,is_premium,created_at').order('created_at'),
+    sb.from('recipes').select('id,title,status,rating_avg,rating_count,created_at,author_id').order('created_at',{ascending:false}),
+    sb.from('comments').select('id,body,created_at,recipe_id,author_id').order('created_at',{ascending:false}).limit(150),
+    sb.from('tags').select('key,label,grp').order('grp'),
+    sb.from('ratings').select('*',{count:'exact',head:true}),
+    sb.from('dogs').select('*',{count:'exact',head:true})
+  ]);
+  db.users=u.data||[]; db.recipes=r.data||[]; db.comments=c.data||[]; db.tags=t.data||[];
+  uMap={}; db.users.forEach(x=>uMap[x.id]=x.display_name||'—');
+  rMap={}; db.recipes.forEach(x=>rMap[x.id]=x.title);
+  const byStatus={approved:0,pending:0,rejected:0,draft:0};
+  db.recipes.forEach(x=>{byStatus[x.status]=(byStatus[x.status]||0)+1;});
+  db.counts={users:db.users.length,recipes:db.recipes.length,byStatus,comments:db.comments.length,ratings:ratings.count||0,dogs:dogs.count||0};
+  const mc=$('modcount');if(mc)mc.innerHTML=byStatus.pending?'<span class="badge b-pending" style="margin-left:auto">'+byStatus.pending+'</span>':'';
+  render();
+}
+
+function setView(v){view=v;document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));render();}
+document.getElementById('nav').addEventListener('click',e=>{const a=e.target.closest('a');if(a&&a.dataset.v)setView(a.dataset.v);});
+
+const TITLES={dash:['Pulpit','Przegląd najważniejszych liczb'],mod:['Moderacja','Przepisy oczekujące na akceptację'],recipes:['Przepisy','Wszystkie przepisy w bazie'],users:['Użytkownicy','Konta i role'],comments:['Komentarze','Najnowsze komentarze'],tags:['Tagi','Taksonomia kategorii']};
+function render(){
+  $('vtitle').textContent=TITLES[view][0];$('vsub').textContent=TITLES[view][1];
+  if(view==='dash')return renderDash();
+  if(view==='mod')return renderRecipeTable(db.recipes.filter(r=>r.status==='pending'),true);
+  if(view==='recipes')return renderRecipes();
+  if(view==='users')return renderUsers();
+  if(view==='comments')return renderComments();
+  if(view==='tags')return renderTags();
+}
+
+function renderDash(){
+  const c=db.counts,s=c.byStatus||{};
+  const kpi=(lab,val,hint)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div><div class="hint">${hint||''}</div></div>`;
+  let html=`<div class="grid kpis">
+    ${kpi('Użytkownicy',c.users,'zarejestrowane konta')}
+    ${kpi('Przepisy',c.recipes,(s.approved||0)+' opublikowanych')}
+    ${kpi('Oczekujące',s.pending||0,'do moderacji')}
+    ${kpi('Komentarze',c.comments,'ostatnie '+c.comments)}
+    ${kpi('Oceny',c.ratings,'wszystkich ocen')}
+    ${kpi('Profile psów',c.dogs,'dodanych psów')}
+  </div>`;
+  const pend=db.recipes.filter(r=>r.status==='pending').slice(0,5);
+  html+=`<div class="panel"><div class="panel-h"><h3>Oczekuje na akceptację</h3><button class="btn ghost sm" onclick="setView('mod')">Przejdź do moderacji</button></div>`;
+  if(pend.length){html+='<table><thead><tr><th>Przepis</th><th>Autor</th><th>Dodano</th><th></th></tr></thead><tbody>'+pend.map(r=>`<tr><td><b>${esc(r.title)}</b></td><td class="muted-cell">${esc(uMap[r.author_id]||'—')}</td><td class="muted-cell">${fmtD(r.created_at)}</td><td><div class="row"><button class="btn sm gold" onclick="openRecipe('${r.id}')">Podgląd</button><button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button></div></td></tr>`).join('')+'</tbody></table>';}
+  else html+='<div class="empty">Brak przepisów oczekujących na akceptację.</div>';
+  html+='</div>';
+  const rc=db.comments.slice(0,5);
+  html+=`<div class="panel"><div class="panel-h"><h3>Najnowsze komentarze</h3><button class="btn ghost sm" onclick="setView('comments')">Wszystkie</button></div>`;
+  if(rc.length){html+='<table><tbody>'+rc.map(c=>`<tr><td><b>${esc(uMap[c.author_id]||'—')}</b> <span class="muted-cell">· ${esc(rMap[c.recipe_id]||'przepis')}</span><div class="muted-cell">${esc(c.body)}</div></td><td class="muted-cell">${fmtD(c.created_at)}</td></tr>`).join('')+'</tbody></table>';}
+  else html+='<div class="empty">Brak komentarzy.</div>';
+  html+='</div>';
+  $('view').innerHTML=html;
+}
+
+function statusBadge(s){const m={approved:'Opublikowany',pending:'Oczekuje',rejected:'Odrzucony',draft:'Szkic'};return `<span class="badge b-${s}">${m[s]||s}</span>`;}
+function renderRecipes(){
+  let list=db.recipes.slice();
+  if(recFilter!=='all')list=list.filter(r=>r.status===recFilter);
+  if(recQ)list=list.filter(r=>(r.title||'').toLowerCase().includes(recQ.toLowerCase()));
+  const opt=(v,l)=>`<option value="${v}" ${recFilter===v?'selected':''}>${l}</option>`;
+  let html=`<div class="panel"><div class="panel-h"><h3>Przepisy (${list.length})</h3><div class="tools">
+    <input placeholder="Szukaj po nazwie…" value="${esc(recQ)}" oninput="recQ=this.value;renderInto()">
+    <select onchange="recFilter=this.value;renderInto()">${opt('all','Wszystkie')}${opt('approved','Opublikowane')}${opt('pending','Oczekujące')}${opt('rejected','Odrzucone')}${opt('draft','Szkice')}</select>
+  </div></div>`;
+  html+=renderRecipeRows(list);
+  html+='</div>';
+  $('view').innerHTML=html;
+}
+function renderRecipeTable(list,isMod){
+  let html=`<div class="panel"><div class="panel-h"><h3>${isMod?'Do moderacji':'Przepisy'} (${list.length})</h3></div>`+renderRecipeRows(list)+'</div>';
+  $('view').innerHTML=html;
+}
+function renderRecipeRows(list){
+  if(!list.length)return '<div class="empty">Brak przepisów.</div>';
+  return '<table><thead><tr><th>Przepis</th><th>Autor</th><th>Status</th><th>Ocena</th><th>Dodano</th><th></th></tr></thead><tbody>'+list.map(r=>{
+    let act=`<button class="btn sm gold" onclick="openRecipe('${r.id}')">Podgląd</button>`;
+    if(r.status==='pending')act+=`<button class="btn sm" onclick="approve('${r.id}')">Zatwierdź</button><button class="btn sm danger" onclick="reject('${r.id}')">Odrzuć</button>`;
+    else if(r.status==='approved')act+=`<button class="btn sm ghost" onclick="setStatus('${r.id}','rejected')">Ukryj</button>`;
+    else act+=`<button class="btn sm" onclick="approve('${r.id}')">Opublikuj</button>`;
+    if(isAdmin())act+=`<button class="btn sm danger" onclick="delRecipe('${r.id}','${esc((r.title||'').replace(/'/g,""))}')">Usuń</button>`;
+    return `<tr><td><b>${esc(r.title)}</b></td><td class="muted-cell">${esc(uMap[r.author_id]||'—')}</td><td>${statusBadge(r.status)}</td><td class="muted-cell">${r.rating_avg?('★ '+r.rating_avg+' ('+(r.rating_count||0)+')'):'—'}</td><td class="muted-cell">${fmtD(r.created_at)}</td><td><div class="row">${act}</div></td></tr>`;
+  }).join('')+'</tbody></table>';
+}
+
+function renderUsers(){
+  if(!isAdmin()){$('view').innerHTML='<div class="empty">Zarządzanie użytkownikami dostępne tylko dla administratora.</div>';return;}
+  let list=db.users.slice();
+  if(userQ)list=list.filter(u=>(u.display_name||'').toLowerCase().includes(userQ.toLowerCase()));
+  const roles=['owner','dietitian','moderator','admin'];
+  let html=`<div class="panel"><div class="panel-h"><h3>Użytkownicy (${list.length})</h3><div class="tools"><input placeholder="Szukaj…" value="${esc(userQ)}" oninput="userQ=this.value;renderInto()"></div></div>`;
+  html+='<table><thead><tr><th>Nazwa</th><th>Rola</th><th>Premium</th><th>Dołączył</th></tr></thead><tbody>'+list.map(u=>{
+    const sameMe=u.id===me.id;
+    const sel='<select onchange="changeRole(\''+u.id+'\',this.value)" style="width:auto;padding:6px 9px">'+roles.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')+'</select>';
+    return `<tr><td><b>${esc(u.display_name||'—')}</b>${sameMe?' <span class="muted-cell">(Ty)</span>':''}</td><td>${sel}</td><td><button class="btn sm ${u.is_premium?'gold':'ghost'}" onclick="togglePremium('${u.id}',${u.is_premium?'false':'true'})">${u.is_premium?'Premium ✓':'Ustaw premium'}</button></td><td class="muted-cell">${fmtD(u.created_at)}</td></tr>`;
+  }).join('')+'</tbody></table></div>';
+  $('view').innerHTML=html;
+}
+
+function renderComments(){
+  let html='<div class="panel"><div class="panel-h"><h3>Komentarze ('+db.comments.length+')</h3></div>';
+  if(!db.comments.length){html+='<div class="empty">Brak komentarzy.</div></div>';$('view').innerHTML=html;return;}
+  html+='<table><thead><tr><th>Autor</th><th>Przepis</th><th>Treść</th><th>Data</th><th></th></tr></thead><tbody>'+db.comments.map(c=>`<tr><td><b>${esc(uMap[c.author_id]||'—')}</b></td><td class="muted-cell">${esc(rMap[c.recipe_id]||'—')}</td><td>${esc(c.body)}</td><td class="muted-cell">${fmtD(c.created_at)}</td><td><button class="btn sm danger" onclick="delComment('${c.id}')">Usuń</button></td></tr>`).join('')+'</tbody></table></div>';
+  $('view').innerHTML=html;
+}
+
+function renderTags(){
+  const groups={};db.tags.forEach(t=>{(groups[t.grp]=groups[t.grp]||[]).push(t);});
+  const GN={meal:'Rodzaj posiłku',ingredient:'Główny składnik',form:'Typ / forma',age:'Wiek',size:'Wielkość',goal:'Cel / potrzeby',method:'Metoda',storage:'Przechowywanie',texture:'Tekstura',health:'Wsparcie zdrowotne',free_from:'Bez (alergeny)',supplement:'Suplementacja',style:'Styl',season:'Sezon',quality:'Jakość'};
+  let html='<div class="panel"><div class="panel-h"><h3>Taksonomia ('+db.tags.length+' tagów)</h3></div>';
+  Object.keys(groups).sort().forEach(g=>{
+    html+='<div class="grpttl">'+esc(GN[g]||g)+'</div><div class="taglist" style="padding:0 18px 14px">'+groups[g].map(t=>`<span class="tag">${esc(t.label)} <span class="muted-cell">· ${esc(t.key)}</span></span>`).join('')+'</div>';
+  });
+  html+='</div>';
+  $('view').innerHTML=html;
+}
+function renderInto(){render();}
+
+// AKCJE
+async function openRecipe(id){
+  $('modalBox').innerHTML='<div class="loading">Ładowanie…</div>';$('modal').classList.add('open');
+  const r=db.recipes.find(x=>x.id===id)||{};
+  const [ing,stp,tg]=await Promise.all([
+    sb.from('recipe_ingredients').select('name,amount,position').eq('recipe_id',id).order('position'),
+    sb.from('recipe_steps').select('body,position').eq('recipe_id',id).order('position'),
+    sb.from('recipe_tags').select('tags(label,grp)').eq('recipe_id',id)
+  ]);
+  const ings=(ing.data||[]),steps=(stp.data||[]),tags=(tg.data||[]).map(x=>x.tags).filter(Boolean);
+  let h=`<h3>${esc(r.title||'Przepis')}</h3><div class="muted">Autor: ${esc(uMap[r.author_id]||'—')} · ${statusBadge(r.status)}</div>`;
+  h+=`<div class="sec"><b>Składniki</b><ul>${ings.length?ings.map(i=>`<li>${esc(i.name)}${i.amount?' — '+esc(i.amount):''}</li>`).join(''):'<li class="muted">—</li>'}</ul></div>`;
+  h+=`<div class="sec"><b>Przygotowanie</b><ul>${steps.length?steps.map(s=>`<li>${esc(s.body)}</li>`).join(''):'<li class="muted">—</li>'}</ul></div>`;
+  h+=`<div class="sec"><b>Tagi</b><div class="taglist">${tags.length?tags.map(t=>`<span class="tag">${esc(t.label)}</span>`).join(''):'<span class="muted">—</span>'}</div></div>`;
+  h+='<div class="sec" style="display:flex;gap:8px;margin-top:20px">';
+  if(r.status==='pending')h+=`<button class="btn" onclick="approve('${id}')">Zatwierdź</button><button class="btn danger" onclick="reject('${id}')">Odrzuć</button>`;
+  else if(r.status==='approved')h+=`<button class="btn ghost" onclick="setStatus('${id}','rejected')">Ukryj</button>`;
+  else h+=`<button class="btn" onclick="approve('${id}')">Opublikuj</button>`;
+  h+=`<button class="btn ghost" onclick="closeModal()">Zamknij</button></div>`;
+  $('modalBox').innerHTML=h;
+}
+function closeModal(){$('modal').classList.remove('open');}
+
+async function approve(id){const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:true});if(error){toast('Błąd: '+error.message);return;}toast('Zatwierdzono');closeModal();await refreshAll();}
+async function reject(id){const {error}=await sb.rpc('review_recipe',{p_recipe:id,p_approve:false});if(error){toast('Błąd: '+error.message);return;}toast('Odrzucono');closeModal();await refreshAll();}
+async function setStatus(id,s){const {error}=await sb.from('recipes').update({status:s}).eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Zmieniono status');closeModal();await refreshAll();}
+async function delRecipe(id,title){if(!confirm('Usunąć przepis „'+title+'"? Tej operacji nie można cofnąć.'))return;const {error}=await sb.from('recipes').delete().eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Usunięto przepis');await refreshAll();}
+async function delComment(id){if(!confirm('Usunąć komentarz?'))return;const {error}=await sb.from('comments').delete().eq('id',id);if(error){toast('Błąd: '+error.message);return;}toast('Usunięto komentarz');await refreshAll();}
+async function changeRole(id,role){
+  if(id===me.id&&role!=='admin'&&!confirm('Zmieniasz własną rolę z admina. Możesz stracić dostęp do panelu. Kontynuować?'))return renderUsers();
+  const {error}=await sb.from('profiles').update({role}).eq('id',id);
+  if(error){toast('Błąd: '+error.message);return renderUsers();}
+  const u=db.users.find(x=>x.id===id);if(u)u.role=role;toast('Zmieniono rolę');
+  if(id===me.id){me.role=role;$('whorole').innerHTML='<span class="role '+role+'">'+role+'</span>';}
+}
+async function togglePremium(id,val){const v=(val===true||val==='true');const {error}=await sb.from('profiles').update({is_premium:v}).eq('id',id);if(error){toast('Błąd: '+error.message);return;}const u=db.users.find(x=>x.id===id);if(u)u.is_premium=v;toast(v?'Włączono premium':'Wyłączono premium');renderUsers();}
+
+// auto-login jeśli sesja istnieje
+(async()=>{const {data}=await sb.auth.getSession();if(data&&data.session){await afterLogin(data.session.user);}})();
+</script>
+</body>
+</html>
