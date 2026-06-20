@@ -577,7 +577,7 @@ function mapDbRecipe(r,ings,steps,tagKeys,i){
   return {id:r.id,name:r.title,cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
     time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
     portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,desc:r.description||'',
-    flags:tagKeys,ing:ings.map(x=>[x.name,x.amount||'']),steps:steps.map(x=>x.body),good:[],bad:[],warn:'',status:r.status};
+    flags:tagKeys,ing:ings.map(x=>[x.name,x.amount||'']),steps:steps.map(x=>x.body),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
 }
 async function loadData(){
   if(!sb)return;
@@ -703,7 +703,7 @@ function passFilters(r){
 function recipeCardHTML(r,full){
   const [bc,bt]=BADGE[r.badge];
   return `<div class="rcard ${full?'full':''}" onclick="openRecipe('${r.id}')">
-    <div class="thumb ${r.wash}"><button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
+    <div class="thumb ${r.wash}"${r.thumb?` style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${r.thumb}');background-size:cover;background-position:center"`:''}><button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
     <h4>${r.name}</h4>
     <div class="sub"><span>${r.time}</span><span class="dot">·</span><span>${r.kcal}</span><span class="dot">·</span><span>${star} ${r.rating}</span></div></div>`;
 }
@@ -818,7 +818,7 @@ function renderAddRecipe(){
   <div class="addhead"><button class="back" onclick="go('recipes')" aria-label="Wróć">${ico('arrow')}</button><h2>Dodaj przepis</h2></div>
   <div class="pad"><p class="muted" style="margin-bottom:18px">Twój przepis trafi do moderatora i pojawi się publicznie dopiero po akceptacji. Pola oznaczone * są wymagane.</p>
     <div class="field"><label>Nazwa przepisu *</label><input id="r_name" placeholder="np. Domowa miska z indykiem"></div>
-    <div class="field"><label>Zdjęcie dania</label><button class="outbtn" type="button" onclick="toast('Dodawanie zdjęć — wkrótce')">${ico('image')} Dodaj zdjęcie</button></div>
+    <div class="field"><label>Zdjęcie dania</label><input type="file" id="r_photo" accept="image/*" style="display:none" onchange="onPhotoPick(event)"><button class="outbtn" type="button" onclick="document.getElementById('r_photo').click()">${ico('image')} ${pendingPhoto?'Zmień zdjęcie':'Wybierz zdjęcie'}</button><div id="r_photo_prev">${pendingPhoto?'<p class="muted" style="font-size:12px;margin-top:8px">Zdjęcie wybrane ✓ — zostanie zmniejszone i zoptymalizowane przed wysłaniem.</p>':''}</div></div>
     <div class="field"><label>Krótki opis</label><textarea id="r_desc" placeholder="Dla kogo i czym wyróżnia się ten posiłek"></textarea></div>
     <div class="row2"><div class="field"><label>Czas</label><input id="r_time" placeholder="np. 30 min"></div>
       <div class="field"><label>Kcal (opcjonalnie)</label><input id="r_kcal" placeholder="np. 290" inputmode="numeric"></div></div>
@@ -849,6 +849,18 @@ async function saveRecipe(){
     if(steps.length)await sb.from('recipe_steps').insert(steps.map((b,i)=>({recipe_id:rec.id,position:i,body:b})));
     const {data:tg}=await sb.from('tags').select('id').in('key',keys);
     if(tg&&tg.length)await sb.from('recipe_tags').insert(tg.map(t=>({recipe_id:rec.id,tag_id:t.id})));
+    if(pendingPhoto){try{
+      toast('Przetwarzam zdjęcie…');
+      const det=await compressImage(pendingPhoto,1200,0.8);
+      const th=await compressImage(pendingPhoto,480,0.72);
+      const base=rec.id+'/'+Date.now();
+      await sb.storage.from('recipe-photos').upload(base+'_d.webp',det,{contentType:'image/webp',upsert:true});
+      await sb.storage.from('recipe-photos').upload(base+'_t.webp',th,{contentType:'image/webp',upsert:true});
+      const du=sb.storage.from('recipe-photos').getPublicUrl(base+'_d.webp').data.publicUrl;
+      const tu=sb.storage.from('recipe-photos').getPublicUrl(base+'_t.webp').data.publicUrl;
+      await sb.from('recipes').update({image_url:du,thumb_url:tu}).eq('id',rec.id);
+    }catch(e){}}
+    pendingPhoto=null;
     const {error:se}=await sb.rpc('submit_recipe',{p_recipe:rec.id});
     await loadMine();await loadPending();
     go('profile');
@@ -1061,7 +1073,27 @@ function render(){
   sc.style.scrollBehavior='';
   lastTab=state.tab;
 }
-function go(t){state.tab=t;render();}
+function go(t){if(t==='add')pendingPhoto=null;state.tab=t;render();}
+let pendingPhoto=null;
+function compressImage(file,maxDim,quality){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight;
+      if(Math.max(w,h)>maxDim){const s=maxDim/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      c.toBlob(b=>{URL.revokeObjectURL(img.src);b?resolve(b):reject(new Error('compress'));},'image/webp',quality);
+    };
+    img.onerror=reject;img.src=URL.createObjectURL(file);
+  });
+}
+function onPhotoPick(e){
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  pendingPhoto=f;
+  const prev=$('r_photo_prev');
+  if(prev){const url=URL.createObjectURL(f);prev.innerHTML=`<img src="${url}" alt="" style="width:100%;max-height:180px;object-fit:cover;border-radius:14px;margin-top:8px"><p class="muted" style="font-size:12px;margin-top:6px">Zostanie zmniejszone i zoptymalizowane przed wysłaniem.</p>`;}
+}
 function goCat(c){state.tab='recipes';state.cat=c;state.q='';render();}
 function goSearch(){state.tab='recipes';render();const s=$('search');if(s)s.focus();}
 function homeSearch(v){state.q=v;state.tab='recipes';render();const s=$('search');if(s){s.focus();s.setSelectionRange(v.length,v.length);}}
@@ -1098,7 +1130,7 @@ function openRecipe(id){
   const risky=checkRisk(r);
   const cms=state.comments[id]||[];
   $('detailScr').innerHTML=`
-    <div class="dhead thumb ${r.wash}" style="border:none;border-radius:0">
+    <div class="dhead thumb ${r.wash}" style="border:none;border-radius:0${r.image?`;background-image:linear-gradient(180deg,rgba(20,28,24,.12),rgba(20,28,24,.58)),url('${r.image}');background-size:cover;background-position:center`:''}">
       <div class="dscrim"></div>
       <img src="${r.wash==='gold'||r.wash==='parch'?MONOG:MONO}" alt="" style="position:absolute;top:64px;right:20px;width:104px;opacity:.13;z-index:1;pointer-events:none">
       <div class="circ-btn back" onclick="closeRecipe()" aria-label="Wróć">${ico('arrow')}</div>
