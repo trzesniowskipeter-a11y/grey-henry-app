@@ -737,9 +737,10 @@ function renderAccount(){
     <div class="field"><label>Nowe hasło</label><input id="ac_pass" type="password" placeholder="min. 6 znaków"></div>
     <div class="field"><label>Powtórz nowe hasło</label><input id="ac_pass2" type="password"></div>
     <button class="btn btn-gold" style="width:100%;margin-bottom:26px" onclick="changePassword()">Zmień hasło</button>
-    ${!pwaInstalled()?`<div class="sprig" style="margin:6px 0 18px"><span>APLIKACJA</span></div>
-    <button class="btn btn-gold" style="width:100%;margin-bottom:12px" onclick="installApp()">${ico('send')} Zainstaluj na telefonie</button>
-    <p class="muted" style="margin:-2px 0 26px;font-size:12px;line-height:1.6">iPhone (Safari): Udostępnij ⬆️ → „Do ekranu początkowego". Android (Chrome): menu ⋮ → „Zainstaluj aplikację".</p>`:''}
+    <div class="sprig" style="margin:6px 0 18px"><span>APLIKACJA</span></div>
+    <a class="btn btn-gold" href="https://github.com/trzesniowskipeter-a11y/grey-henry-app/releases/latest/download/grey-henry.apk" style="display:block;text-align:center;text-decoration:none;width:100%;margin-bottom:12px">${ico('book')} Pobierz aplikację na Androida (.apk)</a>
+    ${!pwaInstalled()?`<button class="outbtn" style="width:100%;margin-bottom:12px;justify-content:center" onclick="installApp()">${ico('send')} Zainstaluj na iPhone (dodaj do ekranu)</button>`:''}
+    <p class="muted" style="margin:-2px 0 26px;font-size:12px;line-height:1.6">Android: pobierz plik .apk powyżej i otwórz go — zezwól na instalację z nieznanych źródeł. iPhone (Safari): Udostępnij ⬆️ → „Do ekranu początkowego".</p>
     <button class="outbtn" style="width:100%;margin-bottom:30px" onclick="doLogout()">Wyloguj się</button>
   </div>`;
 }
