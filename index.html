@@ -600,8 +600,8 @@ const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane
 
 const PAGE=6;
 let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
-  comments:{1:[{who:'Ola K.',text:'Mój labrador uwielbia tę miskę. Robię co tydzień.',when:'3 dni temu'}],2:[{who:'Piotr',text:'Pomogło po problemach żołądkowych. Dziękuję!',when:'wczoraj'}],4:[{who:'Magda',text:'Świetnie zbilansowane, widać efekty u psa.',when:'5 dni temu'}]},
-  dogs:[{name:'Mila',breed:'Border collie',age:'4 lata',weight:'17 kg',activity:'Wysoka aktywność',goal:'Pies aktywny',allergens:['Kurczak'],forbidden:['Zboża'],preferences:'Mięso, posiłki gotowane',conditions:'Brak',note:'Energiczna i czujna, uwielbia aportować. Najszczęśliwsza, gdy w misce jest coś gotowanego.',notes:[{text:'Po przejściu na gotowane posiłki ma wyraźnie więcej energii.',when:'tydzień temu'},{text:'Dobrze toleruje indyka — kurczak wywołuje swędzenie.',when:'3 dni temu'}]}]};
+  comments:{},
+  dogs:[]};
 
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2100);}
@@ -700,7 +700,7 @@ async function start(){
 async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value;if(!sb)return;const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return toast(error.message);toast('Zalogowano');afterLogin();}
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
-async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.tab='home';$('login').classList.add('show');render();}
+async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
 async function browseGuest(){setBusy(true);await loadData();setBusy(false);$('login').classList.remove('show');render();}
 async function doForgot(){
   const e=$('lg_email')?$('lg_email').value.trim():'';
@@ -932,6 +932,14 @@ function renderRecipes(){
 }
 
 function renderAddRecipe(){
+  if(!state.user){return `
+  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society"></div>
+  <div class="pad" style="text-align:center;padding-top:24px">
+    <div class="eyebrow">Dodaj przepis</div>
+    <h2 class="serif" style="font-size:22px;margin:10px 0 6px">Tylko dla zalogowanych</h2>
+    <p class="muted" style="margin-bottom:22px;line-height:1.6">Aby dodać własny przepis do Society, zaloguj się lub załóż bezpłatne konto.</p>
+    <button class="btn btn-gold" style="width:100%" onclick="document.getElementById('login').classList.add('show')">Zaloguj się / Załóż konto</button>
+  </div>`;}
   const groups=[
    ['Rodzaj posiłku *',[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_kolacja','Kolacje'],['m_przekaska','Przekąski'],['m_smaczek','Smaczki treningowe']]],
    ['Główny składnik *',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']]],
