@@ -462,7 +462,13 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .section-h h2::before{background:#BFB178;box-shadow:0 0 9px rgba(143,127,72,.5)}
 /* delikatna złota linia pod herbem w nagłówkach ekranów */
 .brandbar{flex-direction:column;align-items:center;gap:10px}
-.brandbar::after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(143,127,72,.6),transparent)}.rate{display:flex;gap:8px;margin:2px 0 8px}.rstar{background:none;border:none;padding:2px;font-size:24px;line-height:1;color:rgba(42,52,49,.22);cursor:pointer;transition:color .15s,transform .1s}.rstar.on{color:var(--gold)}.rstar:active{transform:scale(.9)}
+.brandbar::after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(143,127,72,.6),transparent)}.rate{display:flex;gap:8px;margin:2px 0 8px}.rstar{background:none;border:none;padding:2px;font-size:24px;line-height:1;color:rgba(42,52,49,.22);cursor:pointer;transition:color .15s,transform .1s}.rstar.on{color:var(--gold)}.rstar:active{transform:scale(.9)}.onboard{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,#fff,#fbf7ee);border:1px solid var(--line);border-left:3px solid #BFB178;border-radius:14px;padding:14px 16px;cursor:pointer}
+.onboard .ob-i{width:40px;height:40px;border-radius:50%;background:#2A3431;color:#F4EEE1;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.onboard b{font-size:15px}.onboard p{font-size:12.5px;color:#6B7771;margin-top:2px}
+.portioncalc{background:linear-gradient(180deg,#2f3b36,#222d29);color:#F4EEE1;border-radius:16px;padding:16px 18px;margin:14px 0 6px}
+.portioncalc .pc-h{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#BFB178;display:flex;align-items:center;gap:8px}
+.portioncalc .pc-v{font-family:var(--serif);font-size:26px;margin:6px 0 4px}
+.portioncalc p{font-size:12px;color:#c7cfc8;line-height:1.6}
 </style>
 </head>
 <body>
@@ -790,6 +796,7 @@ function renderHome(){
   return `
   <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society"></div>
   <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+dog.name):'Witaj w Society'}</b></div>
+  ${state.user&&!state.dogs.length?`<div class="pad"><div class="onboard" onclick="goAddDog()"><div class="ob-i">${ico('user')}</div><div style="flex:1"><b>Dodaj profil swojego psa</b><p>Spersonalizuj przepisy, alergie i porcje — zajmie chwilę.</p></div>${ico('chev')}</div></div>`:''}
   <div class="pad"><div class="searchwrap">${ico('search')}<input id="homeSearch" placeholder="Szukaj przepisu lub składnika…" value="${state.q}" oninput="homeSearch(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
   <button class="morebtn" style="margin-top:10px" onclick="goFilters()">${ico('filter')} Filtry i kategorie</button></div>
   <div class="chips qcats">${quick.map(([c,l])=>`<button class="chip" onclick="goCat('${c}')">${l}</button>`).join('')}</div>
@@ -823,7 +830,7 @@ function renderRecipes(){
   });
   if(state.sort==='rating')list=list.slice().sort((a,b)=>b.rating-a.rating);
   else if(state.sort==='fast')list=list.slice().sort((a,b)=>parseInt(a.time,10)-parseInt(b.time,10));
-  else if(state.sort==='new')list=list.slice().sort((a,b)=>b.id-a.id);
+  else if(state.sort==='new')list=list.slice().sort((a,b)=>(b.created||'').localeCompare(a.created||''));
   const n=state.flags.size;
   const sig=state.cat+'|'+state.q+'|'+[...state.flags].sort().join(',')+'|'+state.sort+'|'+state.dogMatch;
   if(state._sig!==sig){state._sig=sig;state.shown=PAGE;}
@@ -949,7 +956,7 @@ function renderPlanner(){
     <button class="outbtn" style="margin-bottom:14px" onclick="generateShop()">${ico('plus')} Uzupełnij ze składników z planu</button>
     ${shop.length?shop.map(it=>`<div class="shop ${it.checked?'done':''}" onclick="toggleShop('${it.id}')"><span class="ck">${ico('check')}</span><div style="flex:1"><h5>${it.label}</h5><p>${it.is_custom?'Dodane ręcznie':'Z planu'}</p></div><button class="dayrm" onclick="event.stopPropagation();removeShop('${it.id}')" aria-label="Usuń">${ico('x')}</button></div>`).join(''):'<p class="muted" style="color:#8a9189;margin-bottom:6px">Lista jest pusta. Uzupełnij ją ze składników z planu lub dodaj produkty ręcznie.</p>'}
     <div class="shopadd"><input id="shopInput" placeholder="Dodaj własny produkt…" onkeydown="if(event.key==='Enter')addShop()"><button onclick="addShop()" aria-label="Dodaj">${ico('plus')}</button></div>
-    <button class="outbtn" style="margin-top:16px" onclick="toast('Lista przygotowana do eksportu')">${ico('send')} Eksportuj listę</button>
+    <button class="outbtn" style="margin-top:16px" onclick="exportShopping()">${ico('send')} Eksportuj listę (druk / PDF)</button>
     <p class="disclaim" style="color:#8a9189">Lista powstaje ze składników zaplanowanych posiłków. Możesz dopisać własne produkty.</p>
   </div>`;
 }
@@ -1211,6 +1218,26 @@ function setProfileFilters(){const d=state.dogs[0];if(!d)return;state.flags=new 
 function applyProfile(){setProfileFilters();render();toast(state.dogs[0]?('Dopasowano do '+state.dogs[0].name):'');}
 function clearFilters(){state.flags.clear();state.q='';state.cat='all';state.sort='rec';state.dogMatch=false;render();}
 function setQ(v){state.q=v;render();const s=$('search');if(s){s.focus();s.setSelectionRange(v.length,v.length);}}
+function goAddDog(){state.tab='profile';render();setTimeout(function(){try{openDogForm();}catch(e){}},40);}
+function exportShopping(){
+  const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const items=(state.shop||[]);
+  const plan=state.plan.filter(p=>p[1]).map(([d,id])=>{const r=findRecipe(id);return [d,r?r.name:'—'];});
+  const w=window.open('','_blank');
+  if(!w){toast('Pozwól na otwarcie nowego okna, aby zapisać PDF');return;}
+  const li=items.length?items.map(i=>`<li>${esc(i.label)}</li>`).join(''):'<li style="color:#888">(lista pusta)</li>';
+  const pr=plan.length?plan.map(([d,n])=>`<tr><td style="width:70px">${esc(d)}</td><td>${esc(n)}</td></tr>`).join(''):'<tr><td colspan="2" style="color:#888">(brak zaplanowanych posiłków)</td></tr>';
+  const dt=new Date().toLocaleDateString('pl-PL');
+  w.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Lista zakupów — The Grey Henry Society</title>
+  <style>body{font-family:Georgia,serif;color:#23302B;max-width:640px;margin:32px auto;padding:0 20px}h1{font-size:24px;border-bottom:2px solid #BFB178;padding-bottom:8px;margin-bottom:4px}h2{font-size:16px;margin-top:26px;color:#2A3431}ul{line-height:1.9;font-size:15px}table{width:100%;border-collapse:collapse;font-size:15px}td{padding:7px 4px;border-bottom:1px solid #e3dccb}.eyebrow{letter-spacing:3px;text-transform:uppercase;font-size:11px;color:#8F7F48}.foot{margin-top:30px;font-size:12px;color:#888}@media print{.noprint{display:none}}button{font-family:sans-serif;background:#2A3431;color:#fff;border:0;border-radius:8px;padding:10px 18px;cursor:pointer;margin-top:20px}</style></head>
+  <body><div class="eyebrow">The Grey Henry Society</div><h1>Lista zakupów</h1><div style="font-size:12px;color:#888">${dt}</div>
+  <h2>Produkty</h2><ul>${li}</ul>
+  <h2>Plan tygodnia</h2><table>${pr}</table>
+  <p class="foot">Wygenerowano z planera i listy zakupów w aplikacji The Grey Henry Society.</p>
+  <button class="noprint" onclick="window.print()">Drukuj / zapisz jako PDF</button>
+  <script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script></body></html>`);
+  w.document.close();
+}
 function toggleFlag(f){state.flags.has(f)?state.flags.delete(f):state.flags.add(f);render();}
 function renderNav(){
   const ak=state.tab==='add'?'recipes':(state.tab==='account'?'profile':state.tab);
@@ -1242,6 +1269,7 @@ function openRecipe(id){
       <p class="lead">${r.desc}</p>
       <h3>Składniki <span style="font-size:12px;color:#8a9189;font-family:var(--sans)">· ${r.portion}</span></h3>
       ${r.ing.map(i=>`<div class="ing"><span>${i[0]}</span><span>${i[1]}</span></div>`).join('')}
+      ${(()=>{const d=state.dogs&&state.dogs[0];const w=d?parseFloat(String(d.weight||'').replace(',','.')):0;if(!w)return '';const g=Math.round(w*25);return `<div class="portioncalc"><div class="pc-h">${ico('user')} Porcja dla ${d.name} (${w} kg)</div><div class="pc-v">≈ ${g} g dziennie</div><p>Szacunek dla dorosłego psa (~2,5% masy ciała) — podziel na 2 posiłki. Szczenięta i psy aktywne potrzebują więcej; dawkę potwierdź z weterynarzem.</p></div>`;})()}
       <h3>Przygotowanie</h3>
       ${r.steps.map((s,n)=>`<div class="step"><div class="n">${n+1}</div><p>${s}</p></div>`).join('')}
       ${(r.good&&r.good.length)||(r.bad&&r.bad.length)?`<h3>Dla jakich psów</h3>
