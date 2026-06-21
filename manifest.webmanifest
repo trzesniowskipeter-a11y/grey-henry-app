@@ -1,0 +1,19 @@
+{
+  "name": "The Grey Henry Society",
+  "short_name": "Grey Henry",
+  "description": "Premium przepisy i suplementy dla psów — biblioteka receptur, planer posiłków, profile psów i lista zakupów.",
+  "lang": "pl",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1C2420",
+  "theme_color": "#2A3431",
+  "categories": ["food", "lifestyle", "health"],
+  "icons": [
+    { "src": "logo/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "logo/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "logo/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
