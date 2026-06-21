@@ -468,7 +468,19 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .portioncalc{background:linear-gradient(180deg,#2f3b36,#222d29);color:#F4EEE1;border-radius:16px;padding:16px 18px;margin:14px 0 6px}
 .portioncalc .pc-h{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#BFB178;display:flex;align-items:center;gap:8px}
 .portioncalc .pc-v{font-family:var(--serif);font-size:26px;margin:6px 0 4px}
-.portioncalc p{font-size:12px;color:#c7cfc8;line-height:1.6}
+.portioncalc p{font-size:12px;color:#c7cfc8;line-height:1.6}.brandbar{position:relative}
+.bell{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.bell .bdot{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:#b4452f;color:#fff;font-size:10px;font-family:var(--sans);font-weight:700;display:flex;align-items:center;justify-content:center}
+.markall{margin-left:auto;background:none;border:0;color:var(--gold);font-family:var(--sans);font-size:12.5px;cursor:pointer;text-decoration:underline}
+.notif{display:flex;gap:13px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;cursor:pointer;background:#fff}
+.notif.unread{background:linear-gradient(180deg,#fff,#fbf7ee);border-color:rgba(143,127,72,.32)}
+.notif b{font-size:14.5px}
+.notif p{font-size:13px;color:#5d6863;margin:3px 0 5px;line-height:1.5}
+.notif small{font-size:11px;color:#9aa19b}
+.notif .ni{width:36px;height:36px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:#eef0ec;color:#2A3431}
+.notif .ni svg{width:18px;height:18px}
+.notif .n-recipe_approved{background:#e3efe4;color:#2f7d3a}
+.notif .n-recipe_rejected{background:#f4e3df;color:#b4452f}
 </style>
 </head>
 <body>
@@ -565,7 +577,7 @@ let RECIPES=[
 const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane'],comm:['b-comm','Przepis użytkownika']};
 
 const PAGE=6;
-let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
+let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
   comments:{1:[{who:'Ola K.',text:'Mój labrador uwielbia tę miskę. Robię co tydzień.',when:'3 dni temu'}],2:[{who:'Piotr',text:'Pomogło po problemach żołądkowych. Dziękuję!',when:'wczoraj'}],4:[{who:'Magda',text:'Świetnie zbilansowane, widać efekty u psa.',when:'5 dni temu'}]},
   dogs:[{name:'Mila',breed:'Border collie',age:'4 lata',weight:'17 kg',activity:'Wysoka aktywność',goal:'Pies aktywny',allergens:['Kurczak'],forbidden:['Zboża'],preferences:'Mięso, posiłki gotowane',conditions:'Brak',note:'Energiczna i czujna, uwielbia aportować. Najszczęśliwsza, gdy w misce jest coś gotowanego.',notes:[{text:'Po przejściu na gotowane posiłki ma wyraźnie więcej energii.',when:'tydzień temu'},{text:'Dobrze toleruje indyka — kurczak wywołuje swędzenie.',when:'3 dni temu'}]}]};
 
@@ -607,7 +619,7 @@ async function loadData(){
   }catch(e){state.comments={};}
   state.myRatings={};
   if(state.user){try{const {data:rt}=await sb.from('ratings').select('recipe_id,stars').eq('user_id',state.user.id);(rt||[]).forEach(x=>{state.myRatings[x.recipe_id]=x.stars;});}catch(e){}}
-  if(state.user){await loadDogs();await loadMine();await loadPending();await loadPlan();await loadShop();}
+  if(state.user){await loadDogs();await loadMine();await loadPending();await loadPlan();await loadShop();await loadNotifs();}
 }
 function mapDog(d,notes){return {id:d.id,name:d.name,breed:d.breed||'',age:d.age_text||'',weight:(d.weight_kg!=null?d.weight_kg+' kg':''),activity:d.activity||'',goal:d.goal||'',allergens:d.allergens||[],forbidden:d.forbidden||[],preferences:d.preferences||'',conditions:d.conditions||'Brak',note:d.note||'',photo:d.photo_url||'',notes:(notes||[]).map(n=>({text:n.body,when:new Date(n.created_at).toLocaleDateString('pl-PL')}))};}
 async function loadDogs(){
@@ -731,6 +743,33 @@ async function changePassword(){
 }
 function norm(s){return (s||'').toLowerCase().replace(/[ąàá]/g,'a').replace(/ć/g,'c').replace(/[ęèé]/g,'e').replace(/ł/g,'l').replace(/ń/g,'n').replace(/[óòô]/g,'o').replace(/ś/g,'s').replace(/[źż]/g,'z');}
 function findRecipe(id){return RECIPES.find(x=>x.id===id)||state.myRecipes.find(x=>x.id===id);}
+function escH(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function timeAgo(iso){const d=new Date(iso),s=(Date.now()-d.getTime())/1000;if(s<60)return 'przed chwilą';if(s<3600)return Math.floor(s/60)+' min temu';if(s<86400)return Math.floor(s/3600)+' godz. temu';const days=Math.floor(s/86400);if(days===1)return 'wczoraj';if(days<7)return days+' dni temu';return d.toLocaleDateString('pl-PL');}
+async function loadNotifs(){
+  if(!sb||!state.user)return;
+  try{const {data}=await sb.from('notifications').select('*').eq('user_id',state.user.id).order('created_at',{ascending:false}).limit(50);state.notifs=data||[];}catch(e){state.notifs=[];}
+}
+function renderNotifs(){
+  const list=state.notifs||[];const unread=list.filter(n=>!n.read).length;
+  return `
+  <div class="addhead"><button class="back" onclick="go('home')" aria-label="Wróć">${ico('arrow')}</button><h2>Powiadomienia</h2>${unread?`<button class="markall" onclick="markAllNotifs()">Oznacz wszystkie</button>`:''}</div>
+  <div class="pad" style="padding-top:14px">
+  ${list.length?list.map(n=>`<div class="notif ${n.read?'':'unread'}" onclick="openNotif('${n.id}')">
+    <div class="ni n-${n.type}">${ico(n.type==='recipe_approved'?'check':(n.type==='recipe_rejected'?'x':'bell'))}</div>
+    <div style="flex:1"><b>${escH(n.title)}</b>${n.body?`<p>${escH(n.body)}</p>`:''}<small>${timeAgo(n.created_at)}</small></div>
+  </div>`).join(''):`<div style="text-align:center;padding:54px 0;color:#9aa19b">${ico('bell')}<p style="margin-top:10px">Brak powiadomień.</p></div>`}
+  </div>`;
+}
+async function openNotif(id){
+  const n=(state.notifs||[]).find(x=>x.id===id);if(!n)return;
+  if(!n.read){n.read=true;render();try{await sb.from('notifications').update({read:true}).eq('id',id);}catch(e){}}
+  if(n.recipe_id){if(findRecipe(n.recipe_id))openRecipe(n.recipe_id);else toast('Przepis nie jest już dostępny');}
+}
+async function markAllNotifs(){
+  if(!(state.notifs||[]).length)return;
+  state.notifs.forEach(n=>n.read=true);render();
+  try{await sb.from('notifications').update({read:true}).eq('user_id',state.user.id).eq('read',false);}catch(e){}
+}
 function checkRisk(r){const hits=[];r.ing.forEach(i=>{const n=(i[0]||'').toLowerCase();RISK.forEach(w=>{if(n.includes(w)&&!hits.includes(i[0]))hits.push(i[0]);});});return hits;}
 function dogAvoid(dog){return [].concat(dog&&dog.allergens||[],dog&&dog.forbidden||[]).map(s=>(s||'').toLowerCase());}
 function recipeMatchesDog(r,dog){
@@ -771,7 +810,7 @@ function passFilters(r){
 function recipeCardHTML(r,full){
   const [bc,bt]=BADGE[r.badge];
   return `<div class="rcard ${full?'full':''}" onclick="openRecipe('${r.id}')">
-    <div class="thumb ${r.wash}"${r.thumb?` style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${r.thumb}');background-size:cover;background-position:center"`:''}><button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
+    <div class="thumb ${r.wash}"${r.thumb?` style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${r.thumb}');background-size:cover;background-position:center"`:''}>${r.thumb?'':`<img class="wm" src="${MONOG}" alt="">`}<button class="cardfav ${state.favs.has(r.id)?'on':''}" onclick="event.stopPropagation();toggleFav('${r.id}')" aria-label="Ulubione">${ico('heart')}</button><span class="badge ${bc}">${bt}</span></div>
     <h4>${r.name}</h4>
     <div class="sub"><span>${r.time}</span><span class="dot">·</span><span>${r.kcal}</span>${r.ratingCount?`<span class="dot">·</span><span>${star} ${r.rating}</span>`:''}</div></div>`;
 }
@@ -794,7 +833,7 @@ function renderHome(){
   const favList=RECIPES.filter(r=>state.favs.has(r.id));
   const quick=[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_smaczek','Smaczki'],['a_szczeniak','Szczenięta'],['a_senior','Seniory'],['g_lekko','Lekkostrawne']];
   return `
-  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society"></div>
+  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society">${state.user?`<button class="bell" onclick="go('notifs')" aria-label="Powiadomienia">${ico('bell')}${(state.notifs||[]).filter(n=>!n.read).length?`<span class="bdot">${(state.notifs||[]).filter(n=>!n.read).length}</span>`:''}</button>`:''}</div>
   <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+dog.name):'Witaj w Society'}</b></div>
   ${state.user&&!state.dogs.length?`<div class="pad"><div class="onboard" onclick="goAddDog()"><div class="ob-i">${ico('user')}</div><div style="flex:1"><b>Dodaj profil swojego psa</b><p>Spersonalizuj przepisy, alergie i porcje — zajmie chwilę.</p></div>${ico('chev')}</div></div>`:''}
   <div class="pad"><div class="searchwrap">${ico('search')}<input id="homeSearch" placeholder="Szukaj przepisu lub składnika…" value="${state.q}" oninput="homeSearch(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
@@ -1155,7 +1194,7 @@ function allergyMode(){
   toast('Tryb alergii: ukrywam produkty uczulające dla '+d.name);
 }
 
-const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile,account:renderAccount};
+const VIEWS={home:renderHome,recipes:renderRecipes,add:renderAddRecipe,planner:renderPlanner,community:renderCommunity,profile:renderProfile,account:renderAccount,notifs:renderNotifs};
 let lastTab=null;
 function render(){
   const sc=$('screen');
