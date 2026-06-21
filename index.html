@@ -501,23 +501,42 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .dload{display:flex;align-items:center;gap:10px;color:#8a9189;font-size:13px;padding:12px 0}
 #busy{position:absolute;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(20,28,24,.32);backdrop-filter:blur(2px)}
 #busy.on{display:flex}
-#busy .spin{width:34px;height:34px;border-width:3px}
+#busy .spin{width:34px;height:34px;border-width:3px}.login{overflow-y:auto;padding:30px 24px}
+.login-card{width:100%;max-width:332px;display:flex;flex-direction:column;align-items:center;animation:rise .5s ease both}
+.login-card img{width:80px;margin-bottom:6px}
+.authtabs{display:flex;width:100%;max-width:300px;background:rgba(42,52,49,.07);border-radius:13px;padding:4px;margin:16px 0}
+.authtab{flex:1;border:none;background:none;padding:10px;border-radius:9px;font-family:var(--sans);font-size:13px;letter-spacing:.03em;color:#6B7771;cursor:pointer;transition:.18s}
+.authtab.active{background:#fff;color:var(--green);box-shadow:0 3px 10px -4px rgba(42,52,49,.35);font-weight:500}
+.authdiv{display:flex;align-items:center;gap:12px;width:100%;max-width:300px;margin:18px 0 12px;color:#9aa69d;font-size:10px;letter-spacing:.24em;text-transform:uppercase}
+.authdiv span{flex:0 0 auto}
+.authdiv::before,.authdiv::after{content:"";flex:1;height:1px;background:rgba(42,52,49,.14)}
+.login .btn.gline{background:#fff;color:#23302B;border:1px solid rgba(42,52,49,.2);box-shadow:none}
+.login .btn.gline:active{background:#f3efe6}
+.btn:active,.outbtn:active,.btn-gold:active,.authtab:active,.nav button:active{transform:scale(.975)}
+.dogcard,.onboard,.notif,.comm-post{transition:transform .12s ease}
+.dogcard:active,.onboard:active,.notif:active,.comm-post:active{transform:scale(.99)}
 </style>
 </head>
 <body>
 <div class="framewrap">
   <div class="device">
     <div class="splash" id="splash"><img src="logo/crest_ivory.png" alt="The Grey Henry Society"><div class="tag">Troska godna rodowodu</div></div>
-    <div class="login" id="login"><img src="logo/crest_green.png" alt=""><div class="eyebrow">The Grey Henry Society</div><h2>Witaj w Society</h2><p>Zaloguj się lub załóż konto, aby zapisywać psy, ulubione i własne przepisy.</p>
-      <input id="lg_name" placeholder="Imię (do rejestracji)">
-      <input id="lg_email" type="email" placeholder="E-mail">
-      <input id="lg_pass" type="password" placeholder="Hasło (min. 6 znaków)">
-      <button class="btn" onclick="doLogin()">Zaloguj</button>
-      <button class="btn ghost" onclick="doRegister()">Załóż konto</button>
-      <button class="btn ghost" onclick="doGoogle()">Zaloguj przez Google</button>
-      <button class="skip" onclick="doForgot()">Nie pamiętasz hasła?</button>
-      <button class="skip" onclick="browseGuest()">Przeglądaj bez logowania →</button>
-    </div>
+    <div class="login" id="login"><div class="login-card">
+      <img src="logo/crest_green.png" alt="The Grey Henry Society"><div class="eyebrow">The Grey Henry Society</div>
+      <h2 id="authTitle">Witaj w Society</h2>
+      <p id="authSub">Zaloguj się, aby zarządzać psami, ulubionymi i własnymi przepisami.</p>
+      <div class="authtabs">
+        <button id="tabLogin" class="authtab active" onclick="setAuthMode('login')">Logowanie</button>
+        <button id="tabReg" class="authtab" onclick="setAuthMode('register')">Rejestracja</button>
+      </div>
+      <input id="lg_name" placeholder="Twoje imię" autocomplete="name" style="display:none">
+      <input id="lg_email" type="email" placeholder="E-mail" autocomplete="email" inputmode="email" onkeydown="if(event.key==='Enter')submitAuth()">
+      <input id="lg_pass" type="password" placeholder="Hasło (min. 6 znaków)" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+      <button class="btn" id="authPrimary" onclick="submitAuth()">Zaloguj się</button>
+      <button class="skip" id="authForgot" onclick="doForgot()">Nie pamiętasz hasła?</button>
+      <div class="authdiv"><span>lub</span></div>
+      <button class="btn gline" onclick="doGoogle()">Kontynuuj z Google</button>
+    </div></div>
     <div class="app">
       <div class="screen" id="screen"></div>
       <div class="toast" id="toast"></div>
@@ -701,7 +720,17 @@ async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
 async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
-async function browseGuest(){setBusy(true);await loadData();setBusy(false);$('login').classList.remove('show');render();}
+let authMode='login';
+function setAuthMode(m){
+  authMode=m;const reg=m==='register';
+  const nm=$('lg_name');if(nm)nm.style.display=reg?'block':'none';
+  const pr=$('authPrimary');if(pr)pr.textContent=reg?'Utwórz konto':'Zaloguj się';
+  const tl=$('tabLogin'),tr=$('tabReg');if(tl)tl.classList.toggle('active',!reg);if(tr)tr.classList.toggle('active',reg);
+  const fg=$('authForgot');if(fg)fg.style.display=reg?'none':'block';
+  const sub=$('authSub');if(sub)sub.textContent=reg?'Załóż bezpłatne konto, aby stworzyć profil psa i dodawać własne przepisy.':'Zaloguj się, aby zarządzać psami, ulubionymi i własnymi przepisami.';
+  const pw=$('lg_pass');if(pw)pw.setAttribute('autocomplete',reg?'new-password':'current-password');
+}
+function submitAuth(){authMode==='register'?doRegister():doLogin();}
 async function doForgot(){
   const e=$('lg_email')?$('lg_email').value.trim():'';
   if(!e){toast('Wpisz e-mail, na który wyślemy link do zmiany hasła');return;}
