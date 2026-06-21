@@ -496,7 +496,12 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 }
 @media (display-mode:standalone){
   .nav{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
-}
+}@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(143,127,72,.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+.dload{display:flex;align-items:center;gap:10px;color:#8a9189;font-size:13px;padding:12px 0}
+#busy{position:absolute;inset:0;z-index:55;display:none;align-items:center;justify-content:center;background:rgba(20,28,24,.32);backdrop-filter:blur(2px)}
+#busy.on{display:flex}
+#busy .spin{width:34px;height:34px;border-width:3px}
 </style>
 </head>
 <body>
@@ -519,6 +524,7 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
       <nav class="nav" id="nav"></nav>
     </div>
     <div class="detail" id="detail"><div class="scr" id="detailScr"></div></div>
+    <div id="busy"><span class="spin"></span></div>
   </div>
   <div class="webnote">Ten sam interfejs skaluje się do wersji web · prototyp MVP</div>
 </div>
@@ -599,6 +605,7 @@ let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilte
 
 const $=id=>document.getElementById(id);
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2100);}
+function setBusy(b){const e=$('busy');if(e)e.classList.toggle('on',!!b);}
 
 /* ---- Supabase: połączenie, logowanie, dane na żywo ---- */
 const SB_URL='https://aprzeqqjtwtbaoqbdolv.supabase.co';
@@ -612,21 +619,18 @@ function mapDbRecipe(r,ings,steps,tagKeys,i){
   return {id:r.id,name:escH(r.title),cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
     time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
     portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,ratingCount:r.rating_count||0,featured:r.featured||false,created:r.created_at||'',desc:escH(r.description||''),
-    flags:tagKeys,ing:ings.map(x=>[escH(x.name),escH(x.amount||'')]),steps:steps.map(x=>escH(x.body)),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
+    flags:tagKeys,ing:(ings||[]).map(x=>[escH(x.name),escH(x.amount||'')]),steps:(steps||[]).map(x=>escH(x.body)),detail:(ings!=null&&steps!=null),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
 }
 async function loadData(){
   if(!sb)return;
-  const [{data:recs},{data:ings},{data:stps},{data:rtags},{data:favs}]=await Promise.all([
+  const [{data:recs},{data:rtags},{data:favs}]=await Promise.all([
     sb.from('recipes').select('*').eq('status','approved').order('rating_avg',{ascending:false}),
-    sb.from('recipe_ingredients').select('*').order('position'),
-    sb.from('recipe_steps').select('*').order('position'),
     sb.from('recipe_tags').select('recipe_id,tags(key)'),
     state.user?sb.from('favorites').select('recipe_id'):Promise.resolve({data:[]})
   ]);
-  const grp=(arr,k)=>{const m={};(arr||[]).forEach(x=>{(m[x[k]]=m[x[k]]||[]).push(x);});return m;};
-  const ingM=grp(ings,'recipe_id'),stM=grp(stps,'recipe_id'),tgM={};
+  const tgM={};
   (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
-  RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,ingM[r.id]||[],stM[r.id]||[],tgM[r.id]||[],i));
+  RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,null,null,tgM[r.id]||[],i));
   state.favs=new Set((favs||[]).map(f=>f.recipe_id));
   try{
     const {data:cmts}=await sb.from('comments').select('recipe_id, body, created_at, profiles(display_name)').order('created_at');
@@ -685,7 +689,7 @@ async function setSession(u){
   if(u){try{const {data}=await sb.from('profiles').select('*').eq('id',u.id).single();state.profile=data;}catch(e){}}
   else state.profile=null;
 }
-async function afterLogin(){await setSession((await sb.auth.getSession()).data.session?.user||null);await loadData();$('login').classList.remove('show');render();}
+async function afterLogin(){await setSession((await sb.auth.getSession()).data.session?.user||null);setBusy(true);await loadData();setBusy(false);$('login').classList.remove('show');render();}
 async function start(){
   if(!sb){$('login').classList.add('show');return;}
   sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')showRecovery();});
@@ -697,7 +701,7 @@ async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
 async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.tab='home';$('login').classList.add('show');render();}
-async function browseGuest(){await loadData();$('login').classList.remove('show');render();}
+async function browseGuest(){setBusy(true);await loadData();setBusy(false);$('login').classList.remove('show');render();}
 async function doForgot(){
   const e=$('lg_email')?$('lg_email').value.trim():'';
   if(!e){toast('Wpisz e-mail, na który wyślemy link do zmiany hasła');return;}
@@ -1304,11 +1308,35 @@ function renderNav(){
   $('nav').innerHTML=items.map(([k,i,l])=>`<button class="${ak===k?'active':''}" onclick="go('${k}')"><span class="dot"></span>${ico(i)}<span>${l}</span></button>`).join('');
 }
 
-function openRecipe(id){
-  const r=findRecipe(id);if(!r)return;const fav=state.favs.has(id);
+let _detailId=null;
+function dload(t){return `<div class="dload"><span class="spin"></span>${t}</div>`;}
+async function ensureRecipeDetail(id){
+  const r=findRecipe(id); if(!r||r.detail||!sb)return;
+  try{
+    const [{data:ings},{data:stps}]=await Promise.all([
+      sb.from('recipe_ingredients').select('name,amount,position').eq('recipe_id',id).order('position'),
+      sb.from('recipe_steps').select('body,position').eq('recipe_id',id).order('position')
+    ]);
+    r.ing=(ings||[]).map(x=>[escH(x.name),escH(x.amount||'')]);
+    r.steps=(stps||[]).map(x=>escH(x.body));
+  }catch(e){}
+  r.detail=true;
+}
+async function openRecipe(id){
+  const r=findRecipe(id); if(!r)return;
+  _detailId=id;
+  paintDetail(id);
+  if($('detail'))$('detail').scrollTop=0; if($('detailScr'))$('detailScr').scrollTop=0;
+  $('detail').classList.add('open');
+  if(!(history.state&&history.state.gh==='detail'))history.pushState({gh:'detail'},'');
+  if(!r.detail){await ensureRecipeDetail(id); if(_detailId===id)paintDetail(id);}
+}
+function paintDetail(id){
+  const r=findRecipe(id); if(!r)return; const fav=state.favs.has(id);
   const [bc,bt]=BADGE[r.badge];
   const risky=checkRisk(r);
   const cms=state.comments[id]||[];
+  const loading=!r.detail;
   $('detailScr').innerHTML=`
     <div class="dhead thumb ${r.wash}" style="border:none;border-radius:0${r.image?`;background-image:linear-gradient(180deg,rgba(20,28,24,.12),rgba(20,28,24,.58)),url('${r.image}');background-size:cover;background-position:center`:''}">
       <div class="dscrim"></div>
@@ -1327,10 +1355,10 @@ function openRecipe(id){
       </div>
       <p class="lead">${r.desc}</p>
       <h3>Składniki <span style="font-size:12px;color:#8a9189;font-family:var(--sans)">· ${r.portion}</span></h3>
-      ${r.ing.map(i=>`<div class="ing"><span>${i[0]}</span><span>${i[1]}</span></div>`).join('')}
+      ${loading?dload('Ładowanie składników…'):r.ing.map(i=>`<div class="ing"><span>${i[0]}</span><span>${i[1]}</span></div>`).join('')}
       ${(()=>{const d=state.dogs&&state.dogs[0];const w=d?parseFloat(String(d.weight||'').replace(',','.')):0;if(!w)return '';const g=Math.round(w*25);return `<div class="portioncalc"><div class="pc-h">${ico('user')} Porcja dla ${escH(d.name)} (${w} kg)</div><div class="pc-v">≈ ${g} g dziennie</div><p>Szacunek dla dorosłego psa (~2,5% masy ciała) — podziel na 2 posiłki. Szczenięta i psy aktywne potrzebują więcej; dawkę potwierdź z weterynarzem.</p></div>`;})()}
       <h3>Przygotowanie</h3>
-      ${r.steps.map((s,n)=>`<div class="step"><div class="n">${n+1}</div><p>${s}</p></div>`).join('')}
+      ${loading?dload('Ładowanie kroków…'):r.steps.map((s,n)=>`<div class="step"><div class="n">${n+1}</div><p>${s}</p></div>`).join('')}
       ${(r.good&&r.good.length)||(r.bad&&r.bad.length)?`<h3>Dla jakich psów</h3>
       <div class="tagline">${(r.good||[]).map(g=>`<span class="fit ok">${ico('check')} ${g}</span>`).join('')}</div>
       <div class="tagline" style="margin-top:8px">${(r.bad||[]).map(b=>`<span class="fit no">${ico('x')} ${b}</span>`).join('')}</div>`:''}
@@ -1344,9 +1372,10 @@ function openRecipe(id){
       <div class="cbox"><input id="cInput" placeholder="Napisz komentarz…" onkeydown="if(event.key==='Enter')addComment('${id}')"><button onclick="addComment('${id}')" aria-label="Wyślij">${ico('send')}</button></div>
       <p class="disclaim">Wartości odżywcze i porcje są orientacyjne i nie zastępują konsultacji z lekarzem weterynarii ani dietetykiem zwierzęcym.</p>
     </div>`;
-  $('detail').classList.add('open');
 }
-function closeRecipe(){$('detail').classList.remove('open');}
+function hideDetail(){_detailId=null;$('detail').classList.remove('open');}
+function closeRecipe(){if(history.state&&history.state.gh==='detail'){history.back();}else{hideDetail();}}
+window.addEventListener('popstate',()=>{if($('detail')&&$('detail').classList.contains('open'))hideDetail();});
 async function toggleFav(id){
   if(!state.user){toast('Zaloguj się, aby zapisywać ulubione');return;}
   const had=state.favs.has(id);
