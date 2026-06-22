@@ -514,7 +514,21 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .login .btn.gline:active{background:#f3efe6}
 .btn:active,.outbtn:active,.btn-gold:active,.authtab:active,.nav button:active{transform:scale(.975)}
 .dogcard,.onboard,.notif,.comm-post{transition:transform .12s ease}
-.dogcard:active,.onboard:active,.notif:active,.comm-post:active{transform:scale(.99)}
+.dogcard:active,.onboard:active,.notif:active,.comm-post:active{transform:scale(.99)}.appfooter{margin-top:18px;padding:6px 22px 26px;text-align:center}
+.appfooter .ftcrest{width:60px;opacity:.92;margin-bottom:8px}
+.appfooter .ft-tag{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);letter-spacing:.03em;margin-bottom:20px}
+.ft-install{border:1px solid var(--line);border-radius:18px;padding:18px 16px;background:rgba(244,238,225,.04)}
+.ft-install .ft-h{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.ft-btns{display:flex;gap:10px}
+.ft-btn{flex:1;display:flex;align-items:center;gap:10px;justify-content:center;text-decoration:none;border:1px solid var(--line);background:rgba(244,238,225,.05);border-radius:13px;padding:12px 10px;color:var(--ivory);cursor:pointer;font-family:var(--sans);transition:.16s}
+.ft-btn:active{transform:scale(.97);background:rgba(244,238,225,.1)}
+.ft-btn svg{width:22px;height:22px;color:var(--gold);flex:0 0 auto}
+.ft-btn span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
+.ft-btn b{font-size:13px;font-weight:500}
+.ft-btn small{font-size:10.5px;color:#9aa69d;letter-spacing:.02em}
+.ft-copy{margin-top:18px;font-size:10.5px;color:#6f7a73;letter-spacing:.05em}
+.device input:focus,.device select:focus,.device textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(191,177,120,.16)}
+.nav button.active svg{filter:drop-shadow(0 0 7px rgba(191,177,120,.45))}
 </style>
 </head>
 <body>
@@ -907,7 +921,23 @@ function renderHome(){
   <div style="padding:30px 22px 8px"><div class="sprig"><span>${star} ${star} ${star}</span></div></div>
   <div class="section-h pad"><h2>Najnowsze</h2></div>
   <div class="list" style="padding-bottom:8px">${RECIPES.slice(4,8).map(r=>recipeCardHTML(r,true)).join('')}</div>
-  <div class="brandsign"><img src="${CREST}" alt=""><span>Troska godna rodowodu</span></div>`;
+  ${footerHTML()}`;
+}
+function footerHTML(){
+  const apk='https://github.com/trzesniowskipeter-a11y/grey-henry-app/releases/latest/download/grey-henry.apk';
+  return `<div class="appfooter">
+    <div class="sprig"><span>${star} ${star} ${star}</span></div>
+    <img class="ftcrest" src="${CREST}" alt="The Grey Henry Society">
+    <div class="ft-tag">Troska godna rodowodu</div>
+    <div class="ft-install">
+      <div class="ft-h">Zainstaluj aplikację</div>
+      <div class="ft-btns">
+        <a class="ft-btn" href="${apk}">${ico('book')}<span><b>Android</b><small>Pobierz .apk</small></span></a>
+        <button class="ft-btn" type="button" onclick="installApp()">${ico('send')}<span><b>iPhone</b><small>Dodaj do ekranu</small></span></button>
+      </div>
+    </div>
+    <div class="ft-copy">© ${new Date().getFullYear()} The Grey Henry Society</div>
+  </div>`;
 }
 
 function renderRecipes(){
