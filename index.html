@@ -21,7 +21,7 @@
 html,body{height:100%}
 body{font-family:var(--sans);background:#15201d;color:var(--ivory);display:flex;align-items:center;justify-content:center;min-height:100vh;background-image:radial-gradient(120% 80% at 50% -10%,#26312d 0%,#15201d 60%);padding:24px 12px}
 .framewrap{display:flex;flex-direction:column;align-items:center;gap:16px}
-.device{position:relative;width:420px;max-width:100%;height:860px;max-height:92vh;background:var(--green);border-radius:38px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.7),0 0 0 1px rgba(191,177,120,.18),0 0 0 10px #11181699}
+.device{position:relative;width:440px;max-width:100%;height:min(920px,calc(100vh - 40px));background:var(--green);border-radius:30px;overflow:hidden;box-shadow:0 40px 90px -34px rgba(0,0,0,.6),0 0 0 1px rgba(191,177,120,.2)}
 .app{position:absolute;inset:0;display:flex;flex-direction:column}
 .screen{flex:1;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
 .screen::-webkit-scrollbar{width:0}
@@ -294,7 +294,7 @@ svg{display:block}
 /* ====== warstwa dopracowania wizualnego ====== */
 *{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 body{background:#141d1b;background-image:radial-gradient(135% 90% at 50% -15%,#2c3833 0%,#18221f 46%,#0f1614 100%)}
-.device{box-shadow:0 50px 110px -32px rgba(0,0,0,.78),0 0 0 1px rgba(191,177,120,.22),0 0 0 11px rgba(15,20,18,.6),inset 0 0 0 1px rgba(255,255,255,.02)}
+.device{box-shadow:0 44px 100px -36px rgba(0,0,0,.72),0 0 0 1px rgba(191,177,120,.22),inset 0 0 0 1px rgba(255,255,255,.03)}
 .eyebrow{letter-spacing:.34em;color:#cbbd82}
 
 /* przyciski + mikrointerakcje */
@@ -361,7 +361,7 @@ body{background:#141d1b;background-image:radial-gradient(135% 90% at 50% -15%,#2
 /* ============ JASNY MOTYW ============ */
 body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#efe9db 0%,#ddd6c5 72%)}
 .webnote{color:#6b6f64}
-.device{background:#FBF8F1;box-shadow:0 50px 110px -34px rgba(40,50,45,.42),0 0 0 1px rgba(42,52,49,.16),0 0 0 11px rgba(232,226,212,.7),inset 0 0 0 1px rgba(255,255,255,.5)}
+.device{background:#FBF8F1;box-shadow:0 44px 100px -38px rgba(40,50,45,.4),0 0 0 1px rgba(42,52,49,.14),inset 0 0 0 1px rgba(255,255,255,.5)}
 .screen{color:#23302B}
 .muted,.greetrow .greet,.dayslot .m,.shop p,.dogmeta,.rcard .sub{color:#6B7771}
 .disclaim,.comm-post .ph small,.comment small,.jentry small,.brandsign span,.dayslot.empty,.menu-item .ar{color:#7c857c}
@@ -530,7 +530,7 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .device input:focus,.device select:focus,.device textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(191,177,120,.16)}
 .nav button.active svg{filter:drop-shadow(0 0 7px rgba(191,177,120,.45))}.onboard>svg{width:24px;height:24px;flex:0 0 auto;color:var(--antique)}
 .onboard>div{min-width:0}
-.onboard .ob-i svg{width:22px;height:22px}
+.onboard .ob-i svg{width:22px;height:22px}.ft-note{margin-top:12px;font-size:11px;color:#8a9189;line-height:1.6}
 </style>
 </head>
 <body>
@@ -787,9 +787,9 @@ function renderAccount(){
     <div class="field"><label>Powtórz nowe hasło</label><input id="ac_pass2" type="password"></div>
     <button class="btn btn-gold" style="width:100%;margin-bottom:26px" onclick="changePassword()">Zmień hasło</button>
     <div class="sprig" style="margin:6px 0 18px"><span>APLIKACJA</span></div>
-    <a class="btn btn-gold" href="https://github.com/trzesniowskipeter-a11y/grey-henry-app/releases/latest/download/grey-henry.apk" style="display:block;text-align:center;text-decoration:none;width:100%;margin-bottom:12px">${ico('book')} Pobierz aplikację na Androida (.apk)</a>
-    ${!pwaInstalled()?`<button class="outbtn" style="width:100%;margin-bottom:12px;justify-content:center" onclick="installApp()">${ico('send')} Zainstaluj na iPhone (dodaj do ekranu)</button>`:''}
-    <p class="muted" style="margin:-2px 0 26px;font-size:12px;line-height:1.6">Android: pobierz plik .apk powyżej i otwórz go — zezwól na instalację z nieznanych źródeł. iPhone (Safari): Udostępnij ⬆️ → „Do ekranu początkowego".</p>
+    <button class="outbtn" style="width:100%;margin-bottom:10px;justify-content:center" onclick="installApp('ios')">${ico('book')} Zainstaluj na iPhone</button>
+    <button class="outbtn" style="width:100%;margin-bottom:12px;justify-content:center" onclick="installApp('android')">${ico('send')} Zainstaluj na Androidzie</button>
+    <p class="muted" style="margin:-2px 0 26px;font-size:12px;line-height:1.6">Otwórz tę stronę na telefonie i dodaj ją jako aplikację (PWA). iPhone (Safari): Udostępnij ⬆️ → „Do ekranu początkowego". Android (Chrome): menu ⋮ → „Zainstaluj aplikację".</p>
     <button class="outbtn" style="width:100%;margin-bottom:30px" onclick="doLogout()">Wyloguj się</button>
   </div>`;
 }
@@ -926,17 +926,17 @@ function renderHome(){
   ${footerHTML()}`;
 }
 function footerHTML(){
-  const apk='https://github.com/trzesniowskipeter-a11y/grey-henry-app/releases/latest/download/grey-henry.apk';
   return `<div class="appfooter">
     <div class="sprig"><span>${star} ${star} ${star}</span></div>
     <img class="ftcrest" src="${CREST}" alt="The Grey Henry Society">
     <div class="ft-tag">Troska godna rodowodu</div>
     <div class="ft-install">
-      <div class="ft-h">Zainstaluj aplikację</div>
+      <div class="ft-h">Zainstaluj na telefonie</div>
       <div class="ft-btns">
-        <a class="ft-btn" href="${apk}">${ico('book')}<span><b>Android</b><small>Pobierz .apk</small></span></a>
-        <button class="ft-btn" type="button" onclick="installApp()">${ico('send')}<span><b>iPhone</b><small>Dodaj do ekranu</small></span></button>
+        <button class="ft-btn" type="button" onclick="installApp('ios')">${ico('book')}<span><b>iPhone</b><small>Dodaj do ekranu</small></span></button>
+        <button class="ft-btn" type="button" onclick="installApp('android')">${ico('send')}<span><b>Android</b><small>Zainstaluj z przeglądarki</small></span></button>
       </div>
+      <p class="ft-note">Otwórz tę stronę na telefonie i dodaj ją jako aplikację — działa jak natywna, pełnoekranowo.</p>
     </div>
     <div class="ft-copy">© ${new Date().getFullYear()} The Grey Henry Society</div>
   </div>`;
@@ -1476,10 +1476,10 @@ let deferredPrompt=null;
 function pwaInstalled(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;try{toast('Zainstalowano aplikację');}catch(e){}});
-function installApp(){
-  if(deferredPrompt){deferredPrompt.prompt();if(deferredPrompt.userChoice)deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;});return;}
-  const iOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  toast(iOS?'iPhone (Safari): dotknij Udostępnij ⬆️ i wybierz „Do ekranu początkowego".':'Menu przeglądarki → „Zainstaluj aplikację" / „Dodaj do ekranu początkowego".');
+function installApp(hint){
+  if(hint!=='ios'&&deferredPrompt){deferredPrompt.prompt();if(deferredPrompt.userChoice)deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;});return;}
+  const iOS=hint==='ios'||(!hint&&(/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)));
+  toast(iOS?'iPhone — w Safari: dotknij Udostępnij ⬆️ i wybierz „Do ekranu początkowego".':'Android — w Chrome: otwórz menu ⋮ i wybierz „Zainstaluj aplikację" / „Dodaj do ekranu początkowego".');
 }
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
 setTimeout(()=>{$('splash').classList.add('hide');start();},2100);
