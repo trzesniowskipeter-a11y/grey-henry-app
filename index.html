@@ -562,7 +562,10 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
 .wrow{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13px}
 .wrow span{color:#8a9189}
 .wbox{display:flex;gap:10px;margin-bottom:10px}
-.wbox input{flex:1}
+.wbox input{flex:1}.comm-post.announce{border-left:3px solid var(--gold)}
+.comm-post.announce .ann-t{font-family:var(--serif);font-size:17px;font-weight:500;margin:4px 0 6px}
+.crest-av{background:var(--green)!important;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.crest-av img{width:74%;height:74%;object-fit:contain}
 </style>
 </head>
 <body class="t-light">
@@ -667,7 +670,7 @@ let RECIPES=[
 const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane'],comm:['b-comm','Przepis użytkownika']};
 
 const PAGE=6;
-let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],favsOpen:false,weightOpen:false,plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
+let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],favsOpen:false,weightOpen:false,announcements:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
   comments:{},
   dogs:[]};
 
@@ -691,11 +694,13 @@ function mapDbRecipe(r,ings,steps,tagKeys,i){
 }
 async function loadData(){
   if(!sb)return;
-  const [{data:recs},{data:rtags},{data:favs}]=await Promise.all([
+  const [{data:recs},{data:rtags},{data:favs},{data:anns}]=await Promise.all([
     sb.from('recipes').select('*').eq('status','approved').order('rating_avg',{ascending:false}),
     sb.from('recipe_tags').select('recipe_id,tags(key)'),
-    state.user?sb.from('favorites').select('recipe_id'):Promise.resolve({data:[]})
+    state.user?sb.from('favorites').select('recipe_id'):Promise.resolve({data:[]}),
+    state.user?sb.from('announcements').select('*').order('created_at',{ascending:false}).limit(20):Promise.resolve({data:[]})
   ]);
+  state.announcements=(anns||[]).map(a=>({id:a.id,title:escH(a.title),body:escH(a.body),when:new Date(a.created_at).toLocaleDateString('pl-PL')}));
   const tgM={};
   (rtags||[]).forEach(rt=>{const k=rt.tags&&rt.tags.key;if(k)(tgM[rt.recipe_id]=tgM[rt.recipe_id]||[]).push(k);});
   RECIPES=(recs||[]).map((r,i)=>mapDbRecipe(r,null,null,tgM[r.id]||[],i));
@@ -1201,6 +1206,8 @@ function renderCommunity(){
   <div class="brandbar" style="padding:18px 0 4px"><img class="crest" src="${CREST}" style="height:60px" alt=""></div>
   <div class="pad" style="text-align:center;margin-bottom:18px"><span class="eyebrow">Stół wspólny</span><b class="serif" style="display:block;font-size:24px;font-weight:500;margin-top:6px">Społeczność</b></div>
   <div class="pad" style="padding-bottom:30px">
+    ${(state.announcements||[]).length?`<div class="section-h"><h2 style="font-size:18px">Ogłoszenia</h2></div>
+    ${state.announcements.map(a=>`<div class="comm-post announce"><div class="ph"><div class="av crest-av"><img src="${CREST}" alt=""></div><div><b>The Grey Henry Society</b><small>Ogłoszenie · ${a.when}</small></div></div><h4 class="ann-t">${a.title}</h4><p>${a.body}</p></div>`).join('')}`:''}
     <div class="section-h"><h2 style="font-size:18px">Najnowsze przepisy</h2></div>
     ${recent.length?recent.map(r=>{const cc=(state.comments[r.id]||[]).length;return `<div class="comm-post" onclick="openRecipe('${r.id}')" style="cursor:pointer"><div class="ph"><div class="av">${(r.name||'?')[0]}</div><div><b>${r.name}</b><small>${r.diff} · ${r.time}</small></div></div>
       <div class="pic thumb ${r.wash}"${r.thumb?` style="background-image:url('${r.thumb}');background-size:cover;background-position:center"`:''}></div>
