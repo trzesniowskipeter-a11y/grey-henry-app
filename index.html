@@ -530,7 +530,28 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
 .device input:focus,.device select:focus,.device textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(191,177,120,.16)}
 .nav button.active svg{filter:drop-shadow(0 0 7px rgba(191,177,120,.45))}.onboard>svg{width:24px;height:24px;flex:0 0 auto;color:var(--antique)}
 .onboard>div{min-width:0}
-.onboard .ob-i svg{width:22px;height:22px}.ft-note{margin-top:12px;font-size:11px;color:#8a9189;line-height:1.6}
+.onboard .ob-i svg{width:22px;height:22px}.ft-note{margin-top:12px;font-size:11px;color:#8a9189;line-height:1.6}@media (min-width:1024px){
+  body{padding:28px}
+  .framewrap{gap:14px}
+  .device{width:min(1180px,calc(100vw - 56px));height:min(880px,calc(100vh - 64px));border-radius:24px}
+  .app{flex-direction:row}
+  /* ----- boczne menu ----- */
+  .nav{flex-direction:column;justify-content:flex-start;align-items:stretch;width:240px;height:100%;flex:0 0 auto;border-top:none;border-right:1px solid var(--line);box-shadow:none;padding:26px 16px;gap:5px}
+  .nav::before{content:"The Grey Henry Society";display:block;font-family:var(--serif);font-size:18px;line-height:1.25;color:var(--gold);padding:6px 14px 24px}
+  .nav button{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:14px;width:100%;padding:12px 14px;border-radius:12px;font-size:13px;letter-spacing:.02em;text-transform:none}
+  .nav button .dot{display:none}
+  .nav button svg{width:21px;height:21px}
+  .nav button.active{background:rgba(143,127,72,.14)}
+  /* ----- treść w wyśrodkowanej kolumnie ----- */
+  .screen{padding-left:max(26px,calc((100% - 1080px) / 2));padding-right:max(26px,calc((100% - 1080px) / 2))}
+  .brandbar{justify-content:flex-start;padding:24px 22px 6px}
+  .rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;overflow:visible}
+  .rail .rcard{flex:none;width:auto}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+  /* ----- szczegół przepisu czytelnej szerokości ----- */
+  .detail .scr{max-width:880px;margin:0 auto;width:100%}
+  .login-card{max-width:360px}
+}
 </style>
 </head>
 <body>
