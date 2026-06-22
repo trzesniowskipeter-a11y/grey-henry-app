@@ -551,7 +551,12 @@ body{background:#E6E0D2;background-image:radial-gradient(130% 90% at 50% -10%,#e
   /* ----- szczegół przepisu czytelnej szerokości ----- */
   .detail .scr{max-width:880px;margin:0 auto;width:100%}
   .login-card{max-width:360px}
-}
+}.favgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.favwrap.open .favgrid{display:block;max-height:min(60vh,460px);overflow-y:auto;padding-right:4px;-webkit-overflow-scrolling:touch}
+.favwrap.open .favgrid .rcard{margin-bottom:14px}
+.favwrap.open .favgrid .rcard:last-child{margin-bottom:0}
+.favmore{width:100%;margin-top:12px;background:none;border:1px dashed var(--line);border-radius:12px;padding:11px;color:var(--gold);font-family:var(--sans);font-size:12.5px;letter-spacing:.04em;cursor:pointer;transition:.15s}
+.favmore:active{transform:scale(.985)}
 </style>
 </head>
 <body>
@@ -655,7 +660,7 @@ let RECIPES=[
 const BADGE={diet:['b-diet','Przepis dietetyka'],verif:['b-verif','Zweryfikowane'],comm:['b-comm','Przepis użytkownika']};
 
 const PAGE=6;
-let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
+let state={tab:'home',user:null,profile:null,cat:'all',q:'',sort:'rec',showFilters:false,showCats:false,profileApplied:false,openGroups:new Set(),dogMatch:false,editingDog:null,journalOpen:false,shown:6,_sig:'',flags:new Set(),favs:new Set(),myRecipes:[],customShop:[],shop:[],notifs:[],favsOpen:false,plan:[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]],
   comments:{},
   dogs:[]};
 
@@ -842,7 +847,7 @@ async function loadNotifs(){
 function renderNotifs(){
   const list=state.notifs||[];const unread=list.filter(n=>!n.read).length;
   return `
-  <div class="addhead"><button class="back" onclick="go('home')" aria-label="Wróć">${ico('arrow')}</button><h2>Powiadomienia</h2>${unread?`<button class="markall" onclick="markAllNotifs()">Oznacz wszystkie</button>`:''}</div>
+  <div class="addhead"><button class="back" onclick="go('home')" aria-label="Wróć">${ico('arrow')}</button><h2>Powiadomienia</h2>${list.length?`<button class="markall" onclick="clearNotifs()">Wyczyść</button>`:''}</div>
   <div class="pad" style="padding-top:14px">
   ${list.length?list.map(n=>`<div class="notif ${n.read?'':'unread'}" onclick="openNotif('${n.id}')">
     <div class="ni n-${n.type}">${ico(n.type==='recipe_approved'?'check':(n.type==='recipe_rejected'?'x':'bell'))}</div>
@@ -859,6 +864,12 @@ async function markAllNotifs(){
   if(!(state.notifs||[]).length)return;
   state.notifs.forEach(n=>n.read=true);render();
   try{await sb.from('notifications').update({read:true}).eq('user_id',state.user.id).eq('read',false);}catch(e){}
+}
+function openNotifsScreen(){state.tab='notifs';render();markAllNotifs();}
+async function clearNotifs(){
+  if(!(state.notifs||[]).length)return;
+  state.notifs=[];render();
+  try{await sb.from('notifications').delete().eq('user_id',state.user.id);}catch(e){}
 }
 function checkRisk(r){const hits=[];r.ing.forEach(i=>{const n=(i[0]||'').toLowerCase();RISK.forEach(w=>{if(n.includes(w)&&!hits.includes(i[0]))hits.push(i[0]);});});return hits;}
 function dogAvoid(dog){return [].concat(dog&&dog.allergens||[],dog&&dog.forbidden||[]).map(s=>(s||'').toLowerCase());}
@@ -923,7 +934,7 @@ function renderHome(){
   const favList=RECIPES.filter(r=>state.favs.has(r.id));
   const quick=[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_smaczek','Smaczki'],['a_szczeniak','Szczenięta'],['a_senior','Seniory'],['g_lekko','Lekkostrawne']];
   return `
-  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society">${state.user?`<button class="bell" onclick="go('notifs')" aria-label="Powiadomienia">${ico('bell')}${(state.notifs||[]).filter(n=>!n.read).length?`<span class="bdot">${(state.notifs||[]).filter(n=>!n.read).length}</span>`:''}</button>`:''}</div>
+  <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society">${state.user?`<button class="bell" onclick="openNotifsScreen()" aria-label="Powiadomienia">${ico('bell')}${(state.notifs||[]).filter(n=>!n.read).length?`<span class="bdot">${(state.notifs||[]).filter(n=>!n.read).length}</span>`:''}</button>`:''}</div>
   <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+escH(dog.name)):'Witaj w Society'}</b></div>
   ${state.user&&!state.dogs.length?`<div class="pad"><div class="onboard" onclick="goAddDog()"><div class="ob-i">${ico('user')}</div><div style="flex:1"><b>Dodaj profil swojego psa</b><p>Spersonalizuj przepisy, alergie i porcje — zajmie chwilę.</p></div>${ico('chev')}</div></div>`:''}
   <div class="pad"><div class="searchwrap">${ico('search')}<input id="homeSearch" placeholder="Szukaj przepisu lub składnika…" value="${state.q}" oninput="homeSearch(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
@@ -1002,7 +1013,7 @@ function renderRecipes(){
   ${(state.cat!=='all'&&!MEALCATS.some(m=>m[0]===state.cat))?`<div class="ctx">Kategoria: ${catLabel(state.cat)}<button onclick="pickCat('all')" aria-label="Wyczyść">${ico('x')}</button></div>`:''}
   ${(state.cat==='all'&&!state.q&&!state.flags.size&&!state.dogMatch&&favList.length)?`
   <div class="section-h pad" style="margin:18px 0 12px"><h2 style="font-size:18px">Ulubione przepisy</h2><span style="font-size:12px;color:#8a9189">${favList.length}</span></div>
-  <div class="rail">${favList.map(r=>recipeCardHTML(r)).join('')}</div>
+  <div class="pad">${favBlockHTML(favList)}</div>
   <div class="pad" style="margin-top:20px"><div class="sprig"><span>WSZYSTKIE PRZEPISY</span></div></div>`:''}
   <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 22px 2px">
     <span class="muted">${list.length} ${list.length===1?'przepis':'przepisów'}</span>
@@ -1192,6 +1203,14 @@ function renderCommunity(){
   </div>`;
 }
 
+function favBlockHTML(favs){
+  if(!favs.length)return '';
+  const open=state.favsOpen, PREVIEW=4, more=favs.length>PREVIEW;
+  const show=open?favs:favs.slice(0,PREVIEW);
+  return `<div class="favwrap ${open?'open':''}"><div class="favgrid">${show.map(r=>recipeCardHTML(r,true)).join('')}</div></div>
+    ${more?`<button class="favmore" onclick="toggleFavs()">${open?('Zwiń ▲'):('Pokaż wszystkie ('+favs.length+') ▾')}</button>`:''}`;
+}
+function toggleFavs(){state.favsOpen=!state.favsOpen;render();}
 function renderProfile(){
   const favs=RECIPES.filter(r=>state.favs.has(r.id));
   return `
@@ -1217,7 +1236,7 @@ function renderProfile(){
       :'<p class="muted" style="padding:2px 0 12px">Nie masz jeszcze własnych przepisów. <a style="color:var(--gold);cursor:pointer" onclick="go(\'add\')">Dodaj pierwszy</a>.</p>'}
 
     <div class="section-h"><h2 style="font-size:18px">Ulubione</h2><span style="font-size:12px;color:#8a9189">${favs.length}</span></div>
-    ${favs.length?`<div class="rail" style="padding-left:0;padding-right:0">${favs.map(r=>recipeCardHTML(r)).join('')}</div>`:'<p class="muted" style="padding:6px 0 14px">Brak ulubionych. Dotknij serca na karcie przepisu, aby je tu zebrać.</p>'}
+    ${favs.length?favBlockHTML(favs):'<p class="muted" style="padding:6px 0 14px">Brak ulubionych. Dotknij serca na karcie przepisu, aby je tu zebrać.</p>'}
 
     <div class="section-h"><h2 style="font-size:18px">Ustawienia</h2></div>
     <div style="padding-bottom:30px">
