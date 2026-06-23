@@ -799,7 +799,15 @@ async function afterLogin(){
   setBusy(true);
   try{await loadData();$('fatal').classList.remove('show');}
   catch(e){setBusy(false);$('fatal').classList.add('show');return;}
-  setBusy(false);$('login').classList.remove('show');render();
+  setBusy(false);$('login').classList.remove('show');render();startPresence();
+}
+function startPresence(){
+  if(!state.user)return;
+  const ping=()=>{if(state.user&&sb){try{sb.rpc('touch_seen');}catch(e){}}};
+  ping();
+  if(state._presenceTimer)clearInterval(state._presenceTimer);
+  state._presenceTimer=setInterval(ping,60000);
+  if(!state._presenceVis){state._presenceVis=true;document.addEventListener('visibilitychange',()=>{if(!document.hidden)ping();});}
 }
 function retryLoad(){$('fatal').classList.remove('show');afterLogin();}
 async function start(){
@@ -822,7 +830,7 @@ async function start(){
 async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value;if(!sb)return;const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return toast(error.message);toast('Zalogowano');afterLogin();}
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
-async function doLogout(){if(sb){state._intentionalSignOut=true;await sb.auth.signOut();}state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
+async function doLogout(){if(sb){state._intentionalSignOut=true;await sb.auth.signOut();}if(state._presenceTimer){clearInterval(state._presenceTimer);state._presenceTimer=null;}state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
 let authMode='login';
 function setAuthMode(m){
   authMode=m;const reg=m==='register';
