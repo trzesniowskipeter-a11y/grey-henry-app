@@ -181,6 +181,7 @@ async function afterLogin(user){
   $('whorole').innerHTML='<span class="role '+me.role+'">'+me.role+'</span>';
   if(!isAdmin()){const ua=document.querySelector('#nav a[data-v="users"]');if(ua)ua.style.display='none';}
   await refreshAll();
+  if(!window._statsPoll){window._statsPoll=setInterval(async()=>{if(view==='dash'&&!document.hidden&&me){try{const {data}=await sb.rpc('admin_stats');if(data){db.stats=data;if(view==='dash')renderDash();}}catch(e){}}},45000);}
 }
 async function doLogout(){await sb.auth.signOut();location.reload();}
 
@@ -207,6 +208,8 @@ async function refreshAll(){
     db.recipes.forEach(x=>{byStatus[x.status]=(byStatus[x.status]||0)+1;});
     db.counts={users:db.users.length,recipes:db.recipes.length,byStatus,comments:db.comments.length,ratings:ratings.count||0,dogs:dogs.count||0};
     const mc=$('modcount');if(mc)mc.innerHTML=byStatus.pending?'<span class="badge b-pending" style="margin-left:auto">'+byStatus.pending+'</span>':'';
+    db.authUsers=[];
+    if(isAdmin()){const lr=await adminAction('list_users');if(!lr.error&&lr.data&&lr.data.users)db.authUsers=lr.data.users;}
     render();
   }catch(e){
     $('view').innerHTML='<div class="panel"><div class="empty" style="color:#9b3b32">Nie udało się wczytać danych: '+esc(e.message||String(e))+'<div style="margin-top:12px"><button class="btn gold sm" onclick="refreshAll()">Spróbuj ponownie</button></div></div></div>';
@@ -242,6 +245,8 @@ function renderDash(){
   const c=db.counts,s=c.byStatus||{},st=db.stats||{};
   const kpi=(lab,val,hint)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${val}</div><div class="hint">${hint||''}</div></div>`;
   let html=`<div class="grid kpis">
+    ${kpi('Aktywni teraz',st.active_now||0,'ostatnie 5 min')}
+    ${kpi('Aktywni dziś',st.active_today||0,'ostatnie 24 h')}
     ${kpi('Użytkownicy',c.users,(st.users_7d!=null?('+'+st.users_7d+' w 7 dni'):'zarejestrowane konta'))}
     ${kpi('Przepisy',c.recipes,(s.approved||0)+' opublikowanych')}
     ${kpi('Oczekujące',s.pending||0,'do moderacji')}
@@ -305,10 +310,22 @@ function renderRecipeRows(list){
   }).join('')+'</tbody></table>';
 }
 
+function ago(ts){
+  if(!ts)return '—';
+  const d=(Date.now()-new Date(ts).getTime())/1000;
+  if(d<60)return 'przed chwilą';
+  if(d<3600)return Math.floor(d/60)+' min temu';
+  if(d<86400)return Math.floor(d/3600)+' godz. temu';
+  if(d<2592000)return Math.floor(d/86400)+' dni temu';
+  return fmtD(ts);
+}
+function patchUser(id,patch){const a=db.users.find(x=>x.id===id);if(a)Object.assign(a,patch);const b=(db.authUsers||[]).find(x=>x.id===id);if(b)Object.assign(b,patch);}
 function renderUsers(){
   if(!isAdmin()){$('view').innerHTML='<div class="empty">Zarządzanie użytkownikami dostępne tylko dla administratora.</div>';return;}
-  let list=db.users.slice();
-  if(userQ)list=list.filter(u=>(u.display_name||'').toLowerCase().includes(userQ.toLowerCase()));
+  const src=(db.authUsers&&db.authUsers.length)?db.authUsers.slice():db.users.map(u=>({id:u.id,email:null,display_name:u.display_name,role:u.role,is_premium:u.is_premium,blocked:u.blocked,last_seen:u.last_seen,last_sign_in_at:null,created_at:u.created_at}));
+  let list=src;
+  if(userQ){const q=userQ.toLowerCase();list=list.filter(u=>((u.display_name||'')+' '+(u.email||'')).toLowerCase().includes(q));}
+  const onlineN=src.filter(u=>u.last_seen&&(Date.now()-new Date(u.last_seen).getTime()<3e5)).length;
   const roles=['owner','dietitian','moderator','admin'];
   let html=`<div class="panel"><div class="panel-h"><h3>Dodaj użytkownika</h3></div>
   <div style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
@@ -318,13 +335,16 @@ function renderUsers(){
     <button class="btn gold" onclick="createUserForm()">Utwórz konto</button>
   </div>
   <div id="nu_result" style="padding:0 18px 14px"></div></div>`;
-  html+=`<div class="panel"><div class="panel-h"><h3>Użytkownicy (${list.length})</h3><div class="tools"><input placeholder="Szukaj…" value="${esc(userQ)}" oninput="userQ=this.value;renderInto()"></div></div>`;
-  html+='<table><thead><tr><th>Nazwa</th><th>Rola</th><th>Premium</th><th>Dostęp</th><th>Dołączył</th></tr></thead><tbody>'+list.map(u=>{
+  html+=`<div class="panel"><div class="panel-h"><h3>Użytkownicy (${list.length}) · <span style="color:#2f8a4e">● ${onlineN} online</span></h3><div class="tools"><input placeholder="Szukaj po nazwie lub e-mailu…" value="${esc(userQ)}" oninput="userQ=this.value;renderInto()"></div></div>`;
+  html+='<table><thead><tr><th>Użytkownik</th><th>Rola</th><th>Premium</th><th>Aktywność</th><th>Dostęp</th></tr></thead><tbody>'+list.map(u=>{
     const sameMe=u.id===me.id;
+    const online=u.last_seen&&(Date.now()-new Date(u.last_seen).getTime()<3e5);
     const sel='<select onchange="changeRole(\''+u.id+'\',this.value)" style="width:auto;padding:6px 9px">'+roles.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')+'</select>';
     const blockBtn=sameMe?'<span class="muted-cell">—</span>':`<button class="btn sm ${u.blocked?'gold':'danger'}" onclick="toggleBlocked('${u.id}',${u.blocked?'false':'true'})">${u.blocked?'Odblokuj':'Zablokuj'}</button>`;
     const resetBtn=`<button class="btn sm ghost" onclick="resetUserPass('${u.id}')">Reset hasła</button>`;
-    return `<tr><td><b>${esc(u.display_name||'—')}</b>${sameMe?' <span class="muted-cell">(Ty)</span>':''}${u.blocked?' <span class="badge b-rejected">Zablokowany</span>':''}</td><td>${sel}</td><td><button class="btn sm ${u.is_premium?'gold':'ghost'}" onclick="togglePremium('${u.id}',${u.is_premium?'false':'true'})">${u.is_premium?'Premium ✓':'Ustaw premium'}</button></td><td><div class="row">${resetBtn}${blockBtn}</div></td><td class="muted-cell">${fmtD(u.created_at)}</td></tr>`;
+    const nameCell=`<b>${esc(u.display_name||'—')}</b>${sameMe?' <span class="muted-cell">(Ty)</span>':''}${u.blocked?' <span class="badge b-rejected">Zablokowany</span>':''}${u.email?`<div class="muted-cell">${esc(u.email)}</div>`:''}`;
+    const actCell=`<div>${online?'<span style="color:#2f8a4e">● online</span>':('ost. aktywność: '+ago(u.last_seen))}</div><div class="muted-cell">logowanie: ${u.last_sign_in_at?ago(u.last_sign_in_at):'—'}</div>`;
+    return `<tr><td>${nameCell}</td><td>${sel}</td><td><button class="btn sm ${u.is_premium?'gold':'ghost'}" onclick="togglePremium('${u.id}',${u.is_premium?'false':'true'})">${u.is_premium?'Premium ✓':'Ustaw premium'}</button></td><td style="font-size:12px">${actCell}</td><td><div class="row">${resetBtn}${blockBtn}</div></td></tr>`;
   }).join('')+'</tbody></table></div>';
   $('view').innerHTML=html;
 }
@@ -489,10 +509,10 @@ async function changeRole(id,role){
   if(id===me.id&&role!=='admin'&&!confirm('Zmieniasz własną rolę z admina. Możesz stracić dostęp do panelu. Kontynuować?'))return renderUsers();
   const {error}=await sb.from('profiles').update({role}).eq('id',id);
   if(error){toast('Błąd: '+error.message);return renderUsers();}
-  const u=db.users.find(x=>x.id===id);if(u)u.role=role;toast('Zmieniono rolę');
+  patchUser(id,{role});toast('Zmieniono rolę');
   if(id===me.id){me.role=role;$('whorole').innerHTML='<span class="role '+role+'">'+role+'</span>';}
 }
-async function togglePremium(id,val){const v=(val===true||val==='true');const {error}=await sb.from('profiles').update({is_premium:v}).eq('id',id);if(error){toast('Błąd: '+error.message);return;}const u=db.users.find(x=>x.id===id);if(u)u.is_premium=v;toast(v?'Włączono premium':'Wyłączono premium');renderUsers();}
+async function togglePremium(id,val){const v=(val===true||val==='true');const {error}=await sb.from('profiles').update({is_premium:v}).eq('id',id);if(error){toast('Błąd: '+error.message);return;}patchUser(id,{is_premium:v});toast(v?'Włączono premium':'Wyłączono premium');renderUsers();}
 
 async function adminAction(action,payload){
   try{
@@ -528,7 +548,7 @@ async function toggleBlocked(id,val){
   if(!confirm(v?'Zablokować dostęp? Użytkownik nie zaloguje się do aplikacji.':'Odblokować dostęp temu użytkownikowi?'))return;
   const r=await adminAction('set_blocked',{userId:id,blocked:v});
   if(r.error){toast('Błąd: '+r.error);return;}
-  const u=db.users.find(x=>x.id===id);if(u)u.blocked=v;toast(v?'Zablokowano dostęp':'Odblokowano dostęp');renderUsers();
+  patchUser(id,{blocked:v});toast(v?'Zablokowano dostęp':'Odblokowano dostęp');renderUsers();
 }
 function renderAnnounce(){
   const list=db.announcements||[];
