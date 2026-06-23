@@ -12,6 +12,17 @@
 <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="logo/icon-192.png">
 <title>The Grey Henry — Society</title>
+<meta name="description" content="The Grey Henry Society — premium przepisy i suplementy dla psów, moderowane z troską. Twórz profil psa, planuj posiłki i odkrywaj sprawdzone przepisy.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Grey Henry Society">
+<meta property="og:title" content="The Grey Henry Society">
+<meta property="og:description" content="Premium przepisy i suplementy dla psów, moderowane z troską.">
+<meta property="og:image" content="logo/icon-512.png">
+<meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Grey Henry Society">
+<meta name="twitter:description" content="Premium przepisy i suplementy dla psów, moderowane z troską.">
+<meta name="twitter:image" content="logo/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -565,7 +576,8 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
 .wbox input{flex:1}.comm-post.announce{border-left:3px solid var(--gold)}
 .comm-post.announce .ann-t{font-family:var(--serif);font-size:17px;font-weight:500;margin:4px 0 6px}
 .crest-av{background:var(--green)!important;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.crest-av img{width:74%;height:74%;object-fit:contain}
+.crest-av img{width:74%;height:74%;object-fit:contain}.offbar{position:fixed;left:0;right:0;top:0;z-index:99999;background:#9b3b32;color:#fff;text-align:center;font-family:var(--sans);font-weight:600;font-size:12.5px;letter-spacing:.02em;padding:9px 12px;transform:translateY(-100%);transition:transform .25s ease}
+.offbar.show{transform:none}
 </style>
 </head>
 <body class="t-light">
@@ -595,8 +607,10 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
     </div>
     <div class="detail" id="detail"><div class="scr" id="detailScr"></div></div>
     <div id="busy"><span class="spin"></span></div>
+    <div class="login" id="fatal"><div class="login-card" style="text-align:center"><b class="serif" style="font-size:20px;display:block">Nie udało się wczytać danych</b><p style="margin:10px 0 18px;font-size:13.5px;line-height:1.5;opacity:.8">Sprawdź połączenie z internetem i spróbuj ponownie.</p><button class="btn btn-gold" style="margin:0" onclick="retryLoad()">Spróbuj ponownie</button></div></div>
   </div>
-  <div class="webnote">Ten sam interfejs skaluje się do wersji web · prototyp MVP</div>
+  <div class="offbar" id="offline">Brak połączenia z internetem — część funkcji może nie działać.</div>
+  <div class="webnote">Ten sam interfejs skaluje się do wersji web</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -764,10 +778,27 @@ async function setSession(u){
   if(u){try{const {data}=await sb.from('profiles').select('*').eq('id',u.id).single();state.profile=data;}catch(e){}}
   else state.profile=null;
 }
-async function afterLogin(){await setSession((await sb.auth.getSession()).data.session?.user||null);setBusy(true);await loadData();setBusy(false);$('login').classList.remove('show');render();}
+async function afterLogin(){
+  await setSession((await sb.auth.getSession()).data.session?.user||null);
+  setBusy(true);
+  try{await loadData();$('fatal').classList.remove('show');}
+  catch(e){setBusy(false);$('fatal').classList.add('show');return;}
+  setBusy(false);$('login').classList.remove('show');render();
+}
+function retryLoad(){$('fatal').classList.remove('show');afterLogin();}
 async function start(){
   if(!sb){$('login').classList.add('show');return;}
-  sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')showRecovery();});
+  function updateOnline(){const b=$('offline');if(b)b.classList.toggle('show',!navigator.onLine);}
+  window.addEventListener('online',()=>{updateOnline();toast('Połączenie przywrócone');});
+  window.addEventListener('offline',updateOnline);
+  updateOnline();
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==='PASSWORD_RECOVERY')return showRecovery();
+    if(event==='SIGNED_OUT'){
+      if(state._intentionalSignOut){state._intentionalSignOut=false;return;}
+      if(state.user){state.user=null;state.profile=null;$('login').classList.add('show');toast('Sesja wygasła — zaloguj się ponownie');render();}
+    }
+  });
   if(window.location.hash&&window.location.hash.indexOf('type=recovery')>=0){showRecovery();return;}
   const {data}=await sb.auth.getSession();
   if(data.session){await afterLogin();}else{$('login').classList.add('show');}
@@ -775,7 +806,7 @@ async function start(){
 async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value;if(!sb)return;const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return toast(error.message);toast('Zalogowano');afterLogin();}
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
 async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
-async function doLogout(){if(sb)await sb.auth.signOut();state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
+async function doLogout(){if(sb){state._intentionalSignOut=true;await sb.auth.signOut();}state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
 let authMode='login';
 function setAuthMode(m){
   authMode=m;const reg=m==='register';
