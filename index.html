@@ -593,7 +593,19 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
   .screen::-webkit-scrollbar-thumb{background:rgba(143,127,72,.35);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
   .screen::-webkit-scrollbar-thumb:hover{background:rgba(143,127,72,.55);background-clip:padding-box}
   .screen::-webkit-scrollbar-track{background:transparent}
-}
+}.sheet{position:absolute;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(8,12,10,.55);backdrop-filter:blur(2px)}
+.sheet.show{display:flex;animation:sheetfade .2s ease}
+@keyframes sheetfade{from{opacity:0}to{opacity:1}}
+.sheet-box{width:100%;max-width:480px;background:#11211c;color:var(--ivory);border-radius:22px 22px 0 0;padding:24px 24px 30px;box-shadow:0 -24px 70px rgba(0,0,0,.45);animation:sheetup .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheetup{from{transform:translateY(40px)}to{transform:translateY(0)}}
+body.t-light .sheet-box{background:#FBF8F1;color:#23302B}
+.sheet-box h3{font-family:var(--serif);font-size:21px;font-weight:500;margin-bottom:6px}
+.sheet-box p{font-size:13.5px;line-height:1.6;opacity:.85;margin-bottom:14px}
+.sheet-box ol{margin:6px 0 18px;padding-left:20px}
+.sheet-box ol li{font-size:14px;line-height:1.55;margin-bottom:12px}
+.sheet-box .shareicon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--gold);color:#1b231f;font-weight:700;vertical-align:-5px;margin:0 2px}
+.sheet-actions{display:flex;gap:10px;flex-wrap:wrap}
+@media (min-width:1024px){.sheet{align-items:center}.sheet-box{border-radius:22px}}
 </style>
 </head>
 <body class="t-light">
@@ -624,6 +636,7 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
     <div class="detail" id="detail"><div class="scr" id="detailScr"></div></div>
     <div id="busy"><span class="spin"></span></div>
     <div class="login" id="fatal"><div class="login-card" style="text-align:center"><b class="serif" style="font-size:20px;display:block">Nie udało się wczytać danych</b><p style="margin:10px 0 18px;font-size:13.5px;line-height:1.5;opacity:.8">Sprawdź połączenie z internetem i spróbuj ponownie.</p><button class="btn btn-gold" style="margin:0" onclick="retryLoad()">Spróbuj ponownie</button></div></div>
+    <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()"><div class="sheet-box" id="sheetBox"></div></div>
   </div>
   <div class="offbar" id="offline">Brak połączenia z internetem — część funkcji może nie działać.</div>
   <div class="webnote">Ten sam interfejs skaluje się do wersji web</div>
@@ -1617,10 +1630,41 @@ let deferredPrompt=null;
 function pwaInstalled(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;try{toast('Zainstalowano aplikację');}catch(e){}});
+function showSheet(html){const b=$('sheetBox');if(!b)return;b.innerHTML=html;$('sheet').classList.add('show');}
+function closeSheet(){$('sheet').classList.remove('show');}
+function copyUrl(){const u=location.href.split('#')[0];try{navigator.clipboard.writeText(u);toast('Skopiowano adres — wklej go w Safari');}catch(e){toast(u);}}
+function iosStepsHTML(){return `<h3>Zainstaluj na iPhonie</h3>
+  <p>Dodaj The Grey Henry do ekranu początkowego — będzie działać jak zwykła aplikacja, na pełnym ekranie.</p>
+  <ol>
+    <li>Na dolnym pasku Safari dotknij ikony <span class="shareicon">⬆</span> <b>Udostępnij</b>.</li>
+    <li>Przewiń listę i wybierz <b>„Do ekranu początkowego"</b>.</li>
+    <li>Potwierdź <b>„Dodaj"</b> w prawym górnym rogu.</li>
+  </ol>
+  <div class="sheet-actions"><button class="btn btn-gold" style="margin:0" onclick="closeSheet()">Rozumiem</button></div>`;}
+function iosSafariHTML(){return `<h3>Otwórz w Safari</h3>
+  <p>Na iPhonie dodawanie do ekranu początkowego działa tylko w przeglądarce <b>Safari</b> (nie w Chrome ani w przeglądarce wbudowanej w Instagram/Facebook/Messenger).</p>
+  <p>Skopiuj adres, otwórz Safari, wklej go, a następnie dotknij <span class="shareicon">⬆</span> <b>Udostępnij</b> → <b>„Do ekranu początkowego"</b>.</p>
+  <div class="sheet-actions"><button class="btn btn-gold" style="margin:0" onclick="copyUrl()">Skopiuj adres</button><button class="btn gline" style="margin:0" onclick="closeSheet()">Zamknij</button></div>`;}
+function androidStepsHTML(){return `<h3>Zainstaluj na Androidzie</h3>
+  <p>Dodaj The Grey Henry do ekranu — będzie działać jak zwykła aplikacja.</p>
+  <ol>
+    <li>Otwórz menu przeglądarki <b>⋮</b> (Chrome, prawy górny róg).</li>
+    <li>Wybierz <b>„Zainstaluj aplikację"</b> lub <b>„Dodaj do ekranu głównego"</b>.</li>
+    <li>Potwierdź — ikona pojawi się na ekranie.</li>
+  </ol>
+  <div class="sheet-actions"><button class="btn btn-gold" style="margin:0" onclick="closeSheet()">Rozumiem</button></div>`;}
 function installApp(hint){
-  if(hint!=='ios'&&deferredPrompt){deferredPrompt.prompt();if(deferredPrompt.userChoice)deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;});return;}
-  const iOS=hint==='ios'||(!hint&&(/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)));
-  toast(iOS?'iPhone — w Safari: dotknij Udostępnij ⬆️ i wybierz „Do ekranu początkowego".':'Android — w Chrome: otwórz menu ⋮ i wybierz „Zainstaluj aplikację" / „Dodaj do ekranu początkowego".');
+  if(pwaInstalled()){toast('Aplikacja jest już zainstalowana 🎉');return;}
+  const ua=navigator.userAgent||'';
+  const iOS=hint==='ios'||/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  if(iOS){
+    const inApp=/FBAN|FBAV|Instagram|Line|Twitter|Snapchat|WhatsApp|MicroMessenger|Pinterest/i.test(ua);
+    const otherBrowser=/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo/i.test(ua);
+    showSheet((inApp||otherBrowser)?iosSafariHTML():iosStepsHTML());
+    return;
+  }
+  if(deferredPrompt){deferredPrompt.prompt();if(deferredPrompt.userChoice)deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;});return;}
+  showSheet(androidStepsHTML());
 }
 function currentTheme(){try{return localStorage.getItem('gh_theme')||'light';}catch(e){return 'light';}}
 function applyTheme(t){document.body.classList.toggle('t-light',t!=='dark');try{localStorage.setItem('gh_theme',t);}catch(e){}const m=$('themeMeta');if(m)m.setAttribute('content',t==='dark'?'#1C2420':'#2A3431');}
