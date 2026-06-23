@@ -1227,8 +1227,11 @@ async function addToPlan(id){
   const i=state.plan.findIndex(p=>p[1]===null);
   if(i<0){toast('Plan na ten tydzień jest pełny');return;}
   state.plan[i][1]=id;
-  if(state.tab==='planner')render();
-  toast('Dodano do planera na '+(DAYNAMES[state.plan[i][0]]||state.plan[i][0]));
+  hideDetail();
+  if(history.state&&history.state.gh==='detail'){try{history.replaceState({},'');}catch(e){}}
+  state.tab='planner';render();
+  const sc=$('screen');if(sc)sc.scrollTop=0;
+  toast('Dodano do planera — '+(DAYNAMES[state.plan[i][0]]||state.plan[i][0]));
   const dates=weekDates();
   try{await sb.from('meal_plan_entries').delete().eq('owner_id',state.user.id).eq('plan_date',dates[i]).eq('position',0);
   await sb.from('meal_plan_entries').insert({owner_id:state.user.id,plan_date:dates[i],position:0,recipe_id:id});}catch(e){}
