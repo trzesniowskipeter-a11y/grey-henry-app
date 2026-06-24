@@ -8,19 +8,19 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Grey Henry">
+<meta name="apple-mobile-web-app-title" content="Henry's Table">
 <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="logo/icon-192.png">
-<title>The Grey Henry — Society</title>
+<title>Henry's Table by The Grey Henry Society</title>
 <meta name="description" content="The Grey Henry Society — premium przepisy i suplementy dla psów, moderowane z troską. Twórz profil psa, planuj posiłki i odkrywaj sprawdzone przepisy.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Grey Henry Society">
-<meta property="og:title" content="The Grey Henry Society">
+<meta property="og:title" content="Henry's Table by The Grey Henry Society">
 <meta property="og:description" content="Premium przepisy i suplementy dla psów, moderowane z troską.">
 <meta property="og:image" content="logo/icon-512.png">
 <meta property="og:locale" content="pl_PL">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="The Grey Henry Society">
+<meta name="twitter:title" content="Henry's Table by The Grey Henry Society">
 <meta name="twitter:description" content="Premium przepisy i suplementy dla psów, moderowane z troską.">
 <meta name="twitter:image" content="logo/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -549,7 +549,7 @@ body.t-light .brandbar::after{content:"";width:42px;height:1px;background:linear
   .app{flex-direction:row}
   /* ----- boczne menu ----- */
   .nav{flex-direction:column;justify-content:flex-start;align-items:stretch;width:240px;height:100%;flex:0 0 auto;border-top:none;border-right:1px solid var(--line);box-shadow:none;padding:26px 16px;gap:5px}
-  .nav::before{content:"The Grey Henry Society";display:block;font-family:var(--serif);font-size:18px;line-height:1.25;color:var(--gold);padding:6px 14px 24px}
+  .nav::before{content:"Henry's Table";display:block;font-family:var(--serif);font-size:18px;line-height:1.25;color:var(--gold);padding:6px 14px 24px}
   .nav button{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:14px;width:100%;padding:12px 14px;border-radius:12px;font-size:13px;letter-spacing:.02em;text-transform:none}
   .nav button .dot{display:none}
   .nav button svg{width:21px;height:21px}
@@ -606,6 +606,9 @@ body.t-light .sheet-box{background:#FBF8F1;color:#23302B}
 .sheet-box .shareicon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--gold);color:#1b231f;font-weight:700;vertical-align:-5px;margin:0 2px}
 .sheet-actions{display:flex;gap:10px;flex-wrap:wrap}
 @media (min-width:1024px){.sheet{align-items:center}.sheet-box{border-radius:22px}}
+.dbones{display:inline-flex;gap:5px;align-items:center;justify-content:center}
+.dbone{width:9px;height:9px;border-radius:50%;background:rgba(143,127,72,.28)}
+.dbone.on{background:var(--gold)}
 </style>
 </head>
 <body class="t-light">
@@ -614,7 +617,7 @@ body.t-light .sheet-box{background:#FBF8F1;color:#23302B}
     <div class="splash" id="splash"><img src="logo/crest_ivory.png" alt="The Grey Henry Society"><div class="tag">Troska godna rodowodu</div></div>
     <div class="login" id="login"><div class="login-card">
       <img src="logo/crest_green.png" alt="The Grey Henry Society"><div class="eyebrow">The Grey Henry Society</div>
-      <h2 id="authTitle">Witaj w Society</h2>
+      <h2 id="authTitle">Henry's Table</h2>
       <p id="authSub">Zaloguj się, aby zarządzać psami, ulubionymi i własnymi przepisami.</p>
       <div class="authtabs">
         <button id="tabLogin" class="authtab active" onclick="setAuthMode('login')">Logowanie</button>
@@ -683,19 +686,18 @@ const CATGROUPS=[
  ['Główny składnik',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko'],['i_ryz','Ryż'],['i_warzywa','Warzywa']]],
  ['Sezonowość',[['x_sezon','Sezonowe']]],
  ['Ograniczenia',[['bez_zboz','Bez zbóż']]],
- ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]]
+ ['Styl',[['st_premium','Premium']]]
 ];
 const FILTERGROUPS=[
  ['Cel żywieniowy',[['g_bialko','Wysokobiałkowe'],['g_lekko','Lekkostrawne'],['g_nisko','Niskotłuszczowe'],['g_brzuch','Wrażliwy żołądek'],['g_nadwaga','Kontrola wagi'],['g_aktywne','Dla aktywnych'],['g_zabieg','Po zabiegach']]],
- ['Czas i trudność',[['quick','Do 30 minut'],['easy','Łatwe']]],
+ ['Czas',[['quick','Do 30 minut']]],
  ['Główne źródło białka',[['i_kurczak','Kurczak'],['i_indyk','Indyk'],['i_wolowina','Wołowina'],['i_ryba','Ryba'],['i_jajko','Jajko']]],
  ['Alergie i nietolerancje',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
  ['Metoda przygotowania',[['met_gotowane','Gotowane'],['met_pieczone','Pieczone'],['met_duszone','Duszone'],['met_surowe','Surowe']]],
  ['Przechowywanie',[['st_mroz','Do mrożenia'],['st_lodowka','Do lodówki'],['st_wynos','Na wynos'],['st_batch','Batch cooking']]],
  ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
  ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
- ['Suplementacja',[['sup_wymaga','Wymaga suplementacji'],['sup_bez','Bez suplementacji']]],
- ['Jakość',[['diet','Od dietetyka'],['verif','Zatwierdzone przez specjalistę']]]
+ ['Suplementacja',[['sup_wymaga','Wymaga suplementacji'],['sup_bez','Bez suplementacji']]]
 ];
 const RISK=['czekolad','cebul','czosnek','winogron','rodzynk','ksylitol','awokado','makadami','alkohol'];
 
@@ -731,7 +733,7 @@ const WASHES=['green','parch','forest','gold'];
 function mapDbRecipe(r,ings,steps,tagKeys,i){
   const badge=tagKeys.includes('q_diet')?'diet':(tagKeys.includes('q_verif')?'verif':'comm');
   return {id:r.id,name:escH(r.title),cat:(tagKeys.find(k=>k.indexOf('m_')===0)||'gotowane'),badge,wash:WASHES[i%4],
-    time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',kcal:r.kcal?r.kcal+' kcal':'—',
+    time:r.time_min?r.time_min+' min':'—',diff:DIFFL[r.difficulty]||'Łatwy',diffLevel:r.difficulty||'easy',kcal:r.kcal?r.kcal+' kcal':'—',
     portion:r.servings?('≈ '+r.servings+' porcji'):'porcja',rating:r.rating_avg||0,ratingCount:r.rating_count||0,featured:r.featured||false,created:r.created_at||'',desc:escH(r.description||''),
     flags:tagKeys,ing:(ings||[]).map(x=>[escH(x.name),escH(x.amount||'')]),steps:(steps||[]).map(x=>escH(x.body)),detail:(ings!=null&&steps!=null),good:[],bad:[],warn:'',status:r.status,thumb:r.thumb_url||'',image:r.image_url||''};
 }
@@ -842,7 +844,7 @@ async function start(){
 }
 async function doLogin(){const e=$('lg_email').value.trim(),p=$('lg_pass').value;if(!sb)return;const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return toast(error.message);toast('Zalogowano');afterLogin();}
 async function doGoogle(){if(!sb)return;const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href.split('#')[0]}});if(error)toast(error.message);}
-async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Society!');afterLogin();}}
+async function doRegister(){const e=$('lg_email').value.trim(),p=$('lg_pass').value,n=$('lg_name').value.trim();if(!sb)return;const {data,error}=await sb.auth.signUp({email:e,password:p,options:{data:{display_name:n}}});if(error)return toast(error.message);if(!data.session){toast('Konto utworzone — potwierdź e-mail (lub wyłącz potwierdzanie w Supabase).');}else{toast('Witamy w Henry\'s Table!');afterLogin();}}
 async function doLogout(){if(sb){state._intentionalSignOut=true;await sb.auth.signOut();}if(state._presenceTimer){clearInterval(state._presenceTimer);state._presenceTimer=null;}state.user=null;state.profile=null;state.favs=new Set();state.dogs=[];state.myRecipes=[];state.pending=[];state.shop=[];state.notifs=[];state.comments={};state.myRatings={};state.plan=[['Pon',null],['Wt',null],['Śr',null],['Czw',null],['Pt',null],['Sob',null],['Niedz',null]];state.tab='home';$('login').classList.add('show');render();}
 let authMode='login';
 function setAuthMode(m){
@@ -955,27 +957,32 @@ async function clearNotifs(){
 }
 function checkRisk(r){const hits=[];r.ing.forEach(i=>{const n=(i[0]||'').toLowerCase();RISK.forEach(w=>{if(n.includes(w)&&!hits.includes(i[0]))hits.push(i[0]);});});return hits;}
 function dogAvoid(dog){return [].concat(dog&&dog.allergens||[],dog&&dog.forbidden||[]).map(s=>(s||'').toLowerCase());}
+const EXCL=[
+ ['kurczak','Kurczak',['kurczak','drobi']],
+ ['indyk','Indyk',['indyk']],
+ ['wolowina','Wołowina',['wołowin','wolowin','serce wołowe','serce wolowe']],
+ ['jagniecina','Jagnięcina',['jagnięc','jagniec']],
+ ['krolik','Królik',['królik','krolik']],
+ ['ryba','Ryby',['dorsz','mintaj','łosoś','losos','sardyn','tuńczyk','tunczyk','ryba']],
+ ['jajko','Jajko',['jajk','jajo','jaje']],
+ ['nabial','Nabiał',['twaróg','twarog','twaroż','twaroz','jogurt','kefir','serek','maślan','maslan','mlek','nabia']],
+ ['zboza','Zboża / gluten',['owsian','owies','otręb','otreb','kasza','makaron','mąka','maka','komosa','gryczan','jaglan','pszen','gluten']],
+ ['ryz','Ryż',['ryż','ryz']],
+ ['orzechy','Orzechy',['orzech']]
+];
+function exclTerms(key){const e=EXCL.find(x=>x[0]===key);return e?e[2]:[key];}
 function recipeMatchesDog(r,dog){
   if(!dog)return true;
+  const names=(r.ing||[]).map(i=>(i[0]||'').toLowerCase());
   for(const a of dogAvoid(dog)){
     if(!a)continue;
-    for(const [term,flag] of AVOIDMAP){if(a.includes(term)&&!r.flags.includes(flag))return false;}
-    if(a.includes('kurcz')&&r.flags.includes('poultry'))return false;
-    if(r.ing.some(i=>(i[0]||'').toLowerCase().includes(a)))return false;
+    const terms=exclTerms(a);
+    if(names.some(n=>terms.some(t=>t&&n.includes(t))))return false;
+    if(!EXCL.find(x=>x[0]===a)&&names.some(n=>n.includes(a)))return false;
   }
   return true;
 }
-function dogProfileFlags(dog){
-  if(!dog)return [];
-  const f=[];
-  for(const a of dogAvoid(dog)){for(const [term,flag] of AVOIDMAP){if(a.includes(term)&&!f.includes(flag))f.push(flag);}}
-  const w=parseInt(dog.weight,10);
-  if(w){f.push(w<10?'s_male':(w<=25?'s_srednie':'s_duze'));}
-  if((dog.activity||'').toLowerCase().includes('wysok'))f.push('g_aktywne');
-  if((dog.goal||'').toLowerCase().includes('senior'))f.push('a_senior');
-  if((dog.goal||'').toLowerCase().includes('redukcj'))f.push('g_nadwaga');
-  return f;
-}
+function dogProfileFlags(dog){return [];}
 function catMatch(r,c){return c==='all'||r.flags.includes(c)||r.cat===c;}
 const AVOIDMAP=[['kurcz','bez_kurczak'],['wolow','bez_wolowina'],['ryb','bez_ryba'],['jaj','bez_jajko'],['nabia','bez_nabial'],['mlek','bez_nabial'],['lakto','bez_nabial'],['zbo','bez_zboz'],['gluten','bez_gluten'],['ryż','bez_ryz'],['ryz','bez_ryz']];
 function passFilters(r){
@@ -990,6 +997,7 @@ function passFilters(r){
   return true;
 }
 
+function diffDots(r){const lv=({easy:1,medium:2,hard:3})[r.diffLevel||({'Łatwy':'easy','Średni':'medium','Trudny':'hard'})[r.diff]||'easy']||1;let h='';for(let i=1;i<=3;i++)h+=`<span class="dbone ${i<=lv?'on':''}"></span>`;return `<span class="dbones" title="Trudność ${lv}/3">${h}</span>`;}
 function recipeCardHTML(r,full){
   const [bc,bt]=BADGE[r.badge];
   return `<div class="rcard ${full?'full':''}" onclick="openRecipe('${r.id}')">
@@ -1017,7 +1025,7 @@ function renderHome(){
   const quick=[['m_sniadanie','Śniadania'],['m_obiad','Obiady'],['m_smaczek','Smaczki'],['a_szczeniak','Szczenięta'],['a_senior','Seniory'],['g_lekko','Lekkostrawne']];
   return `
   <div class="brandbar"><img class="crest" src="${CREST}" alt="The Grey Henry Society">${state.user?`<button class="bell" onclick="openNotifsScreen()" aria-label="Powiadomienia">${ico('bell')}${(state.notifs||[]).filter(n=>!n.read).length?`<span class="bdot">${(state.notifs||[]).filter(n=>!n.read).length}</span>`:''}</button>`:''}</div>
-  <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+escH(dog.name)):'Witaj w Society'}</b></div>
+  <div class="pad greetrow"><span class="greet">Dzień dobry</span><b>${dog?('Gotujemy dla '+escH(dog.name)):"Henry's Table"}</b></div>
   ${state.user&&!state.dogs.length?`<div class="pad"><div class="onboard" onclick="goAddDog()"><div class="ob-i">${ico('user')}</div><div style="flex:1"><b>Dodaj profil swojego psa</b><p>Spersonalizuj przepisy, alergie i porcje — zajmie chwilę.</p></div>${ico('chev')}</div></div>`:''}
   <div class="pad"><div class="searchwrap">${ico('search')}<input id="homeSearch" placeholder="Szukaj przepisu lub składnika…" value="${state.q}" oninput="homeSearch(this.value)">${state.q?`<button class="clr" onclick="setQ('')" aria-label="Wyczyść">${ico('x')}</button>`:''}</div>
   <button class="morebtn" style="margin-top:10px" onclick="goFilters()">${ico('filter')} Filtry i kategorie</button></div>
@@ -1127,9 +1135,8 @@ function renderAddRecipe(){
    ['Tekstura',[['tex_miekkie','Miękkie'],['tex_mokre','Mokre'],['tex_kremowe','Kremowe'],['tex_kawalki','Kawałki'],['tex_chrupiace','Chrupiące']]],
    ['Wsparcie zdrowotne',[['h_skora','Skóra i sierść'],['h_stawy','Stawy'],['h_jelita','Jelita'],['h_odpornosc','Odporność']]],
    ['Bez (alergeny)',[['bez_kurczak','Bez kurczaka'],['bez_wolowina','Bez wołowiny'],['bez_ryba','Bez ryb'],['bez_jajko','Bez jajek'],['bez_nabial','Bez nabiału'],['bez_zboz','Bez zbóż'],['bez_ryz','Bez ryżu'],['bez_gluten','Bez glutenu']]],
-   ['Styl',[['st_szybkie','Szybkie'],['st_budzet','Budżetowe'],['st_premium','Premium']]],
    ['Suplementacja',[['sup_bez','Bez suplementów'],['sup_wymaga','Wymaga suplementacji']]],
-   ['Sezon',[['x_sezon','Sezonowe']]]
+   ['Sezon (np. letnie chłodzące)',[['x_sezon','Sezonowy / letni']]]
   ];
   return `
   <div class="addhead"><button class="back" onclick="go('recipes')" aria-label="Wróć">${ico('arrow')}</button><h2>Dodaj przepis</h2></div>
@@ -1140,6 +1147,7 @@ function renderAddRecipe(){
     <div class="row2"><div class="field"><label>Czas</label><input id="r_time" placeholder="np. 30 min"></div>
       <div class="field"><label>Kcal (opcjonalnie)</label><input id="r_kcal" placeholder="np. 290" inputmode="numeric"></div></div>
     <div class="field"><label>Trudność</label><select id="r_diff"><option value="easy">Łatwy</option><option value="medium">Średni</option><option value="hard">Trudny</option></select></div>
+    <div class="field"><label>Styl</label><div class="chips" id="styleChips"><button type="button" class="chip achip active" data-k="" onclick="pickStyle(this)">Regularny</button><button type="button" class="chip achip" data-k="st_premium" onclick="pickStyle(this)">Premium</button></div></div>
     <div id="addtags">
     ${groups.map(g=>`<div class="field"><label>${g[0]}</label><div class="chips">${g[1].map(([k,l])=>`<button type="button" class="chip achip" data-k="${k}" onclick="this.classList.toggle('active')">${l}</button>`).join('')}</div></div>`).join('')}
     </div>
@@ -1149,11 +1157,12 @@ function renderAddRecipe(){
     <button class="btn btn-gold" style="width:100%;margin-bottom:30px" onclick="saveRecipe()">Wyślij do akceptacji</button>
   </div>`;
 }
+function pickStyle(btn){const w=btn.parentNode;[...w.querySelectorAll('.achip')].forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
 async function saveRecipe(){
   const v=id=>($(id)?$(id).value.trim():'');
   if(!state.user){toast('Zaloguj się, aby dodać przepis');return;}
   if(!v('r_name')){toast('Podaj nazwę przepisu');return;}
-  const keys=[...document.querySelectorAll('#addtags .achip.active')].map(b=>b.dataset.k);
+  const keys=[...document.querySelectorAll('#addtags .achip.active, #styleChips .achip.active')].map(b=>b.dataset.k).filter(Boolean);
   if(!keys.some(k=>k.indexOf('m_')===0)){toast('Wybierz przynajmniej jeden rodzaj posiłku');return;}
   if(!keys.some(k=>k.indexOf('i_')===0)){toast('Wybierz główny składnik');return;}
   if(!$('r_consent').classList.contains('on')){toast('Zaznacz zgodę na publikację');return;}
@@ -1323,7 +1332,7 @@ async function addWeight(){
 function renderProfile(){
   const favs=RECIPES.filter(r=>state.favs.has(r.id));
   return `
-  <div class="profhead"><img class="crest" src="${CREST}" alt="The Grey Henry Society"><h2>Twój profil</h2><p>Członek Society</p></div>
+  <div class="profhead"><img class="crest" src="${CREST}" alt="The Grey Henry Society"><h2>Twój profil</h2><p>The Grey Henry Society Member</p>${state.user?`<button class="outbtn" style="margin:14px auto 0;display:inline-flex;width:auto" onclick="go('account')">${ico('edit')} Edytuj profil</button>`:''}</div>
   <div class="pad" style="padding-top:22px">
     <div class="section-h" style="margin-top:4px"><h2 style="font-size:18px">Profile psów</h2><a onclick="openDogForm()">+ Dodaj psa</a></div>
     ${state.dogs.map((d,i)=>dogCardHTML(d,i)).join('')}
@@ -1379,8 +1388,9 @@ function dogFormHTML(d,editing){
     <div class="row2"><div class="field"><label>Rasa lub typ</label><input id="d_breed" value="${at(d.breed)}" placeholder="np. Chart"></div><div class="field"><label>Wiek</label><input id="d_age" value="${at(d.age)}" placeholder="np. 3 lata"></div></div>
     <div class="row2"><div class="field"><label>Waga</label><input id="d_weight" value="${at(d.weight)}" placeholder="np. 20 kg"></div><div class="field"><label>Poziom aktywności</label><select id="d_act">${opt(acts,d.activity)}</select></div></div>
     <div class="field"><label>Cel żywieniowy</label><select id="d_goal">${opt(goals,d.goal)}</select></div>
-    <div class="field"><label>Alergie</label><input id="d_all" value="${at((d.allergens||[]).join(', '))}" placeholder="np. Kurczak"></div>
-    <div class="field"><label>Produkty zakazane / źle tolerowane</label><input id="d_forb" value="${at((d.forbidden||[]).join(', '))}" placeholder="np. Zboża, nabiał"></div>
+    <div class="field"><label>Składniki do wykluczenia (alergie / nietolerancje)</label>
+    <div class="chips" id="dogExcl">${EXCL.map(([k,l])=>{const cur=[].concat(d.allergens||[],d.forbidden||[]).map(s=>String(s).toLowerCase());const on=cur.includes(k)||cur.some(v=>exclTerms(k).some(t=>t&&(v.includes(t)||t.includes(v))));return `<button type="button" class="chip achip ${on?'active':''}" data-x="${k}" onclick="this.classList.toggle('active')">${l}</button>`;}).join('')}</div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Zaznacz, czego pies nie może jeść — ukryjemy przepisy z tymi składnikami.</p></div>
     <div class="field"><label>Preferencje żywieniowe</label><input id="d_pref" value="${at(d.preferences)}" placeholder="np. lubi mięso, posiłki gotowane"></div>
     <div class="field"><label>Choroby / ograniczenia żywieniowe</label><input id="d_cond" value="${at(d.conditions&&d.conditions!=='Brak'?d.conditions:'')}" placeholder="np. wrażliwa trzustka"></div>
     <div class="field"><label>O psie — charakter, co lubi</label><textarea id="d_note" placeholder="np. Energiczny, uwielbia aportować">${tx(d.note)}</textarea></div>
@@ -1400,7 +1410,7 @@ async function saveDog(){
   if(!state.user){toast('Zaloguj się, aby zapisać profil psa');return;}
   const g=id=>($(id)?$(id).value.trim():'');
   const split=v=>v?v.split(',').map(s=>s.trim()).filter(Boolean):[];
-  const row={owner_id:state.user.id,name:g('d_name')||'Nowy pies',breed:g('d_breed')||null,age_text:g('d_age')||null,weight_kg:parseFloat((g('d_weight')||'').replace(',','.'))||null,activity:$('d_act').value,goal:$('d_goal').value,allergens:split(g('d_all')),forbidden:split(g('d_forb')),preferences:g('d_pref')||null,conditions:g('d_cond')||null,note:g('d_note')||null};
+  const row={owner_id:state.user.id,name:g('d_name')||'Nowy pies',breed:g('d_breed')||null,age_text:g('d_age')||null,weight_kg:parseFloat((g('d_weight')||'').replace(',','.'))||null,activity:$('d_act').value,goal:$('d_goal').value,allergens:[...document.querySelectorAll('#dogExcl .achip.active')].map(b=>b.dataset.x),forbidden:[],preferences:g('d_pref')||null,conditions:g('d_cond')||null,note:g('d_note')||null};
   try{
     const cur=(state.editingDog!=null)?state.dogs[state.editingDog]:null;
     let dogId=cur&&cur.id;
@@ -1575,7 +1585,7 @@ function paintDetail(id){
       ${r.status==='pending'?`<div style="text-align:center;margin-bottom:16px"><span class="status-pill">Oczekuje na akceptację</span></div>`:''}
       <div class="metric-row">
         <div class="metric"><b>${r.time.split(' ')[0]}</b><span>${/min/.test(r.time)?'minut':'czas'}</span></div>
-        <div class="metric"><b>${r.diff}</b><span>Trudność</span></div>
+        <div class="metric"><b>${diffDots(r)}</b><span>Trudność</span></div>
         <div class="metric"><b>${r.kcal.split(' ')[0]}</b><span>kcal</span></div>
         <div class="metric"><b>${r.ratingCount?star+r.rating:'—'}</b><span>Ocena</span></div>
       </div>
